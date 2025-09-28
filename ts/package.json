@@ -1,0 +1,26 @@
+{
+  "name": "tradesee-ts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "anchor build",
+    "test": "anchor test",
+    "idl:copy": "mkdir -p ../app/src/lib/idl && cp ../target/idl/tradesee_escrow.json ../app/src/lib/idl/",
+    "devnet": "ANCHOR_PROVIDER_URL=${RPC_URL} anchor deploy",
+    "localnet": "anchor test"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.87.6",
+    "@solana/spl-token": "^0.3.9",
+    "mocha": "^10.2.0",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.3.0",
+    "chai": "^4.3.7"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.10.0",
+    "@types/chai": "^4.3.11"
+  }
+}
