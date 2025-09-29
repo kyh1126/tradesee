@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
-use solana_program::clock::Clock;
+use anchor_lang::solana_program::clock::Clock;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -336,7 +336,7 @@ pub struct AnchorTrustScore<'info> {
         init_if_needed,
         payer = authority,
         space = 8 + TrustScore::INIT_SPACE,
-        seeds = [b"trust", authority.key().as_ref(), counterparty.as_ref()],
+        seeds = [b"trust", authority.key().as_ref(), counterparty.key().as_ref()],
         bump
     )]
     pub trust_score: Account<'info, TrustScore>,
