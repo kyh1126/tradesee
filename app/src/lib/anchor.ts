@@ -1,7 +1,7 @@
 import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TradeseeEscrow } from './idl/tradesee_escrow';
-import { TradeseeClient } from '../../ts/sdk';
+import { TradeseeClient } from './sdk';
 
 const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID!);
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL!;

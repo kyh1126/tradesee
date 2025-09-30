@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import { getClient, USDC_MINT } from '../lib/anchor';
-import { hashDocument } from '../../ts/sdk/utils';
+import { hashDocument } from '../lib/utils';
 
 export default function CreateContractForm() {
   const { publicKey, signTransaction } = useWallet();
