@@ -8,7 +8,32 @@ export function hashDocument(content: string): number[] {
   return Array.from(hash);
 }
 
-import { PublicKey, AnchorProvider } from '@coral-xyz/anchor';
+export function computeSHA256(content: string): string {
+  // Simple SHA256 implementation for demo purposes
+  // In production, use a proper crypto library
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content);
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    const char = data[i];
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0');
+}
+
+export function generateSolanaPayURL(recipient: string, amount: number, label?: string): string {
+  const baseURL = 'https://solana-pay.vercel.app';
+  const params = new URLSearchParams({
+    recipient,
+    amount: amount.toString(),
+    ...(label && { label }),
+  });
+  return `${baseURL}?${params.toString()}`;
+}
+
+import { PublicKey } from '@solana/web3.js';
+import { AnchorProvider } from '@coral-xyz/anchor';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export function deriveContractPda(

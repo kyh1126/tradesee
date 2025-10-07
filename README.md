@@ -58,35 +58,47 @@ cd ts && npm install
 cd ../app && npm install
 ```
 
-### 2. Environment Configuration
+### 2. Environment Setup
 
-Copy environment files and configure:
+Copy the environment file and configure:
 
 ```bash
-# TypeScript/Anchor environment
-cp ts/env.example ts/.env
-# Edit ts/.env with your settings
-
-# Next.js environment  
-cp app/env.example app/.env.local
-# Edit app/.env.local with your settings
+cd app
+cp env.example .env.local
 ```
 
-**ts/.env**:
+**Required Environment Variables** (`.env.local`):
 ```env
-RPC_URL=https://api.devnet.solana.com
-USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
-WALLET_KEYPAIR=~/.config/solana/id.json
-```
-
-**app/.env.local**:
-```env
+# Solana Network Configuration
 NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
 NEXT_PUBLIC_USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
 NEXT_PUBLIC_PROGRAM_ID=Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
+
+# App Configuration
+NEXT_PUBLIC_APP_NAME=Tradesee
+NEXT_PUBLIC_APP_VERSION=0.1.0
+NEXT_PUBLIC_DEBUG_MODE=true
 ```
 
-### 3. Local Development
+### 3. Start Development Server
+
+```bash
+cd app
+npm run dev
+```
+
+The application will be available at `http://localhost:3000`
+
+### 4. Demo Path
+
+1. **Connect Wallet**: Use Phantom or Solflare wallet
+2. **View Dashboard**: See balance placeholder and active trades list
+3. **Create New Trade**: Click "Create New Trade" button
+4. **Document Anchoring**: Upload a file and see SHA256 hash computation
+5. **Solana Pay Demo**: Click "Create/Deposit" to see Solana Pay URL/QR
+6. **Test Script**: Run `npm run test:pay` to generate test Solana Pay URLs
+
+### 5. Local Development
 
 #### Option A: Local Validator (Recommended for Development)
 

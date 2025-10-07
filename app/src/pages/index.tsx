@@ -6,6 +6,7 @@ import { getClient, USDC_MINT } from '../lib/anchor';
 import WalletConnect from '../components/WalletConnect';
 import CreateContractForm from '../components/CreateContractForm';
 import ContractList from '../components/ContractList';
+import DocumentAnchoring from '../components/DocumentAnchoring';
 
 function HomePage() {
   const { publicKey } = useWallet();
@@ -60,12 +61,34 @@ function HomePage() {
               </div>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            {/* Ad-hoc Credibility Card */}
+            <div className="bg-white rounded-lg shadow p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-4">Ad-hoc Credibility</h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">850</div>
+                  <div className="text-sm text-gray-600">Trust Score</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">12</div>
+                  <div className="text-sm text-gray-600">Completed Trades</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-600">98%</div>
+                  <div className="text-sm text-gray-600">Success Rate</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-8">
               <div>
                 <CreateContractForm />
               </div>
               <div>
                 <ContractList />
+              </div>
+              <div>
+                <DocumentAnchoring />
               </div>
             </div>
           </div>

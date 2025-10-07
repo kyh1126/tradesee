@@ -2,7 +2,7 @@ import { PublicKey, Transaction, SystemProgram, SYSVAR_RENT_PUBKEY } from '@sola
 import * as anchor from '@coral-xyz/anchor';
 import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { TradeseeEscrow } from '../idl/tradesee_escrow';
+// Using any type for prototype
 import { 
   deriveContractPda, 
   deriveEscrowVaultPda, 
@@ -21,9 +21,20 @@ export type CreateContractParams = {
   usdcMint: PublicKey;
 };
 
+export type Agreement = {
+  id: string;
+  buyer: string;
+  seller: string;
+  amount: number;
+  milestones: number;
+  expiry: number;
+  doc_hash: string;
+  status: 'initialized' | 'deposited' | 'released' | 'refunded';
+};
+
 export class TradeseeClient {
   constructor(
-    public program: Program<TradeseeEscrow>,
+    public program: Program,
     public provider: AnchorProvider
   ) {}
 
@@ -55,6 +66,68 @@ export class TradeseeClient {
       .transaction();
 
     return [contractPda, tx];
+  }
+
+  // API Surface Methods (stubs for prototype)
+  async createAgreement(params: {
+    seller: PublicKey;
+    amount: number;
+    milestones: number;
+    expiry: number;
+    docHash: string;
+  }): Promise<Agreement> {
+    // Mock implementation for prototype
+    const agreement: Agreement = {
+      id: Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join(''),
+      buyer: this.provider.wallet.publicKey.toString(),
+      seller: params.seller.toString(),
+      amount: params.amount,
+      milestones: params.milestones,
+      expiry: params.expiry,
+      doc_hash: params.docHash,
+      status: 'initialized'
+    };
+    
+    // Store in localStorage for demo purposes
+    const agreements = this.getAgreements();
+    agreements.push(agreement);
+    localStorage.setItem('tradesee_agreements', JSON.stringify(agreements));
+    
+    return agreement;
+  }
+
+  async deposit(agreementId: string, amount: number): Promise<boolean> {
+    // Mock implementation - simulate deposit
+    const agreements = this.getAgreements();
+    const agreement = agreements.find(a => a.id === agreementId);
+    if (agreement) {
+      agreement.status = 'deposited';
+      localStorage.setItem('tradesee_agreements', JSON.stringify(agreements));
+      return true;
+    }
+    return false;
+  }
+
+  async release(agreementId: string): Promise<boolean> {
+    // Mock implementation - simulate release
+    const agreements = this.getAgreements();
+    const agreement = agreements.find(a => a.id === agreementId);
+    if (agreement && agreement.status === 'deposited') {
+      agreement.status = 'released';
+      localStorage.setItem('tradesee_agreements', JSON.stringify(agreements));
+      return true;
+    }
+    return false;
+  }
+
+  getAgreements(): Agreement[] {
+    // Mock implementation - get from localStorage
+    const stored = localStorage.getItem('tradesee_agreements');
+    return stored ? JSON.parse(stored) : [];
+  }
+
+  async getOrCreateAta(mint: PublicKey, owner: PublicKey): Promise<PublicKey> {
+    return getOrCreateAta(this.provider, mint, owner);
   }
 }
 

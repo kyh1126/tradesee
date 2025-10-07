@@ -1,22 +1,22 @@
 import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { TradeseeEscrow } from './idl/tradesee_escrow';
+import idl from './idl/tradesee_escrow.json';
 import { TradeseeClient } from './sdk';
 
 const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID!);
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL!;
 const USDC_MINT = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT!);
 
-let program: Program<TradeseeEscrow> | null = null;
+let program: Program | null = null;
 let client: TradeseeClient | null = null;
 
-export function getProgram(wallet: Wallet): Program<TradeseeEscrow> {
+export function getProgram(wallet: Wallet): Program {
   if (!program) {
     const connection = new Connection(RPC_URL, 'confirmed');
     const provider = new AnchorProvider(connection, wallet, {
       commitment: 'confirmed',
     });
-    program = new Program(TradeseeEscrow as any, provider);
+    program = new Program(idl as any, provider);
   }
   return program;
 }

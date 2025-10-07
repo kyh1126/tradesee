@@ -55,7 +55,15 @@ export default function CreateContractForm() {
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-md p-6">
-      <h2 className="text-2xl font-bold mb-4">Create New Contract</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Create New Trade</h2>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm"
+        >
+          New Trade
+        </button>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Seller Address</label>
