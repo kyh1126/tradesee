@@ -8,18 +8,13 @@ export function hashDocument(content: string): number[] {
   return Array.from(hash);
 }
 
-export function computeSHA256(content: string): string {
-  // Simple SHA256 implementation for demo purposes
-  // In production, use a proper crypto library
+export async function computeSHA256(content: string): Promise<string> {
+  // Use Web Crypto API for actual SHA256
   const encoder = new TextEncoder();
   const data = encoder.encode(content);
-  let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    const char = data[i];
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash).toString(16).padStart(8, '0');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function generateSolanaPayURL(recipient: string, amount: number, label?: string): string {

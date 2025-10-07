@@ -30,8 +30,8 @@ export default function DocumentAnchoring({ onDocumentAnchored }: DocumentAnchor
 
     setLoading(true);
     try {
-      // Compute SHA256 hash
-      const hash = computeSHA256(documentContent);
+      // Compute SHA256 hash using Web Crypto API
+      const hash = await computeSHA256(documentContent);
       setDocumentHash(hash);
 
       // Mock storage in localStorage
