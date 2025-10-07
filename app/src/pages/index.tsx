@@ -7,6 +7,7 @@ import WalletConnect from '../components/WalletConnect';
 import CreateContractForm from '../components/CreateContractForm';
 import ContractList from '../components/ContractList';
 import DocumentAnchoring from '../components/DocumentAnchoring';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 function HomePage() {
   const { publicKey } = useWallet();
@@ -41,6 +42,9 @@ function HomePage() {
           <header className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Tradesee</h1>
             <p className="text-gray-600">Secure escrow platform on Solana</p>
+            <div className="mt-4">
+              <WalletMultiButton />
+            </div>
           </header>
 
           <div className="max-w-6xl mx-auto">
