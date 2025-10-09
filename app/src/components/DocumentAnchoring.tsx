@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { computeSHA256, generateSolanaPayURL } from '../lib/utils';
 
@@ -12,6 +12,18 @@ export default function DocumentAnchoring({ onDocumentAnchored }: DocumentAnchor
   const [documentHash, setDocumentHash] = useState<string | null>(null);
   const [isAnchored, setIsAnchored] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Listen for global reset event triggered after contract creation
+  useEffect(() => {
+    const handler = () => {
+      setDocumentContent('');
+      setDocumentHash(null);
+      setIsAnchored(false);
+      setLoading(false);
+    };
+    window.addEventListener('tradesee-reset-anchoring', handler);
+    return () => window.removeEventListener('tradesee-reset-anchoring', handler);
+  }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -133,19 +145,7 @@ export default function DocumentAnchoring({ onDocumentAnchored }: DocumentAnchor
           </div>
         )}
 
-        {isAnchored && (
-          <div className="space-y-2">
-            <button
-              onClick={handleCreatePayment}
-              className="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
-            >
-              Create/Deposit - Solana Pay
-            </button>
-            <p className="text-xs text-gray-500 text-center">
-              Opens Solana Pay URL for payment
-            </p>
-          </div>
-        )}
+        {/* Removed separate Solana Pay button to avoid duplicate actions */}
       </div>
     </div>
   );

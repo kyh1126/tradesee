@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey } from '@solana/web3.js';
-import { getClient } from '../lib/anchor';
 
 interface Contract {
   address: string;
@@ -25,33 +23,21 @@ export default function ContractList() {
 
     setLoading(true);
     try {
-      const client = getClient({ publicKey } as any);
-      // Mock data for prototype demonstration
-      const mockContracts: Contract[] = [
-        {
-          address: 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS',
-          seller: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
-          amount: 1000,
-          milestones: 3,
-          completed: 2,
-          expiry: Math.floor(Date.now() / 1000) + 86400, // 24 hours from now
-          released: false,
-          refunded: false,
-          autoRelease: true,
-        },
-        {
-          address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          seller: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
-          amount: 500,
-          milestones: 1,
-          completed: 1,
-          expiry: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
-          released: true,
-          refunded: false,
-          autoRelease: false,
-        },
-      ];
-      setContracts(mockContracts);
+      const stored = localStorage.getItem('tradesee_agreements');
+      const agreements = stored ? JSON.parse(stored) : [];
+      const mapped: Contract[] = agreements.map((a: any) => ({
+        address: a.id,
+        seller: a.seller,
+        amount: a.amount,
+        milestones: a.milestones,
+        completed: a.status === 'released' ? a.milestones : 0,
+        expiry: a.expiry,
+        released: a.status === 'released',
+        refunded: a.status === 'refunded',
+        autoRelease: false,
+      }));
+
+      setContracts(mapped);
     } catch (error) {
       console.error('Error fetching contracts:', error);
     } finally {

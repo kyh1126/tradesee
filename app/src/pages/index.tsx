@@ -13,6 +13,11 @@ function HomePage() {
   const { publicKey } = useWallet();
   const [usdcBalance, setUsdcBalance] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchUSDCBalance = async () => {
     if (!publicKey) return;
@@ -43,7 +48,7 @@ function HomePage() {
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Tradesee</h1>
             <p className="text-gray-600">Secure escrow platform on Solana</p>
             <div className="mt-4">
-              <WalletMultiButton />
+              {mounted ? <WalletMultiButton /> : null}
             </div>
           </header>
 
@@ -84,15 +89,22 @@ function HomePage() {
               </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-8">
-              <div>
+            <div className="grid lg:grid-cols-2 gap-8">
+              {/* Left column: Create form + Document anchoring stacked with CTA at bottom */}
+              <div className="space-y-8">
                 <CreateContractForm />
+                <DocumentAnchoring />
+                <button
+                  form="create-contract-form"
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-3 px-4 rounded-md hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 font-semibold"
+                >
+                  Create Contract
+                </button>
               </div>
+              {/* Right column: Contracts list */}
               <div>
                 <ContractList />
-              </div>
-              <div>
-                <DocumentAnchoring />
               </div>
             </div>
           </div>

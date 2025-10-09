@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
-import { getClient, USDC_MINT } from '../lib/anchor';
-import { hashDocument } from '../lib/utils';
+// Avoid importing Anchor client here to keep form purely mock-mode
+import { computeSHA256, generateSolanaPayURL } from '../lib/utils';
 
 export default function CreateContractForm() {
   const { publicKey, signTransaction } = useWallet();
@@ -13,7 +13,7 @@ export default function CreateContractForm() {
     milestones: '1',
     expiryHours: '24',
     autoRelease: false,
-    documentContent: '',
+    description: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,25 +22,51 @@ export default function CreateContractForm() {
 
     setLoading(true);
     try {
-      const client = getClient({ publicKey, signTransaction } as any);
-      const docHash = hashDocument(formData.documentContent);
-      const expiryTs = Math.floor(Date.now() / 1000) + (parseInt(formData.expiryHours) * 3600);
+      // 1) Require an anchored document from the Document Anchoring section
+      const anchoredDocs = JSON.parse(localStorage.getItem('tradesee_anchored_docs') || '[]');
+      const lastAnchored = anchoredDocs[anchoredDocs.length - 1];
+      if (!lastAnchored || !lastAnchored.hash) {
+        alert('Please anchor a document below before creating the contract.');
+        return;
+      }
+      const docHashHex = lastAnchored.hash as string;
 
-      const [contractPda, tx] = await client.createContract({
-        seller: new PublicKey(formData.seller),
-        amountExpected: parseFloat(formData.amount) * 1e6, // Convert to USDC units
-        milestonesTotal: parseInt(formData.milestones),
-        expiryTs,
-        autoReleaseOnExpiry: formData.autoRelease,
-        docHash,
-        usdcMint: USDC_MINT,
+      // 2) Create agreement locally (mock) with the anchored hash
+      const expiryTs = Math.floor(Date.now() / 1000) + (parseInt(formData.expiryHours) * 3600);
+      const agreement = {
+        id: Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join(''),
+        buyer: publicKey.toString(),
+        seller: new PublicKey(formData.seller).toString(),
+        amount: parseFloat(formData.amount),
+        milestones: parseInt(formData.milestones),
+        expiry: expiryTs,
+        doc_hash: docHashHex,
+        status: 'initialized' as const,
+        description: formData.description,
+      };
+      const storedAgreements = JSON.parse(localStorage.getItem('tradesee_agreements') || '[]');
+      storedAgreements.push(agreement);
+      localStorage.setItem('tradesee_agreements', JSON.stringify(storedAgreements));
+      console.log('Agreement created (mock, localStorage):', agreement);
+
+      // 3) Open Solana Pay URL for deposit
+      const payURL = generateSolanaPayURL(formData.seller, parseFloat(formData.amount), 'Tradesee Escrow');
+      window.open(payURL, '_blank');
+
+      alert('Contract created and document anchored successfully! Solana Pay opened.');
+
+      // 4) Reset form for creating another contract
+      setFormData({
+        seller: '',
+        amount: '',
+        milestones: '1',
+        expiryHours: '24',
+        autoRelease: false,
+        description: '',
       });
 
-      const signature = await client.program.provider.sendAndConfirm(tx);
-      console.log('Contract created:', contractPda.toString());
-      console.log('Transaction signature:', signature);
-      
-      alert('Contract created successfully!');
+      // Also reset Document Anchoring section below
+      window.dispatchEvent(new Event('tradesee-reset-anchoring'));
     } catch (error) {
       console.error('Error creating contract:', error);
       alert('Failed to create contract: ' + error.message);
@@ -57,14 +83,8 @@ export default function CreateContractForm() {
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-md p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Create New Trade</h2>
-        <button
-          onClick={() => window.location.reload()}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm"
-        >
-          New Trade
-        </button>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form id="create-contract-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">Seller Address</label>
           <input
@@ -127,24 +147,18 @@ export default function CreateContractForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Document Content</label>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
           <textarea
-            value={formData.documentContent}
-            onChange={(e) => setFormData({ ...formData, documentContent: e.target.value })}
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             rows={3}
-            placeholder="Enter document content to be hashed"
+            placeholder="Brief description of this contract (for reference)"
             required
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:opacity-50"
-        >
-          {loading ? 'Creating...' : 'Create Contract'}
-        </button>
+        {/* Submit button moved below Document Anchoring section in page layout */}
       </form>
     </div>
   );
