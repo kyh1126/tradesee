@@ -18,7 +18,8 @@ const CreateContractModal: React.FC<CreateContractModalProps> = ({ onClose, onCo
     contractValue: '',
     depositRate: '',
     expiredDate: '',
-    contractTerms: ''
+    contractTerms: '',
+    autoRelease: true
   });
   const [exporterError, setExporterError] = useState('');
   const [importerError, setImporterError] = useState('');
@@ -413,6 +414,37 @@ const CreateContractModal: React.FC<CreateContractModalProps> = ({ onClose, onCo
               className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               required
             />
+          </div>
+
+          {/* Auto Release Toggle */}
+          <div>
+            <label className="block text-white/80 text-sm font-medium mb-2">
+              Auto Release on Expiry
+            </label>
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, autoRelease: !prev.autoRelease }))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                  formData.autoRelease ? 'bg-blue-600' : 'bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    formData.autoRelease ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className="text-white/60 text-sm">
+                {formData.autoRelease ? 'Enabled' : 'Disabled'}
+              </span>
+            </div>
+            <p className="text-white/50 text-xs mt-1">
+              {formData.autoRelease 
+                ? 'Funds will be automatically released to seller when contract expires'
+                : 'Manual release required even after expiry'
+              }
+            </p>
           </div>
 
           {/* Contract Terms */}

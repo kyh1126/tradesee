@@ -1,7 +1,12 @@
-import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
-import { Program, AnchorProvider } from '@coral-xyz/anchor';
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import { TradeseeEscrow } from '../target/types/tradesee_escrow';
+import { PublicKey } from '@solana/web3.js';
+import { AnchorProvider } from '@coral-xyz/anchor';
+import {
+  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddressSync,
+} from '@solana/spl-token';
+import { randomBytes, createHash } from 'crypto';
 
 export function deriveContractPda(
   programId: PublicKey,
@@ -46,23 +51,57 @@ export function deriveOracleFlagPda(
   );
 }
 
+/**
+ * Derive the SPL (Token Program) ATA for a given mint/owner.
+ * Note: On-chain program currently uses classic SPL Token CPI, so this is
+ * the ATA used for transactions in tests. Token-2022 balances should be
+ * handled by a separate finder for read-only flows.
+ */
+export function deriveSplAta(mint: PublicKey, owner: PublicKey): PublicKey {
+  return getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID);
+}
+
+/**
+ * Derive the Token-2022 ATA for a given mint/owner (read-side support).
+ */
+export function deriveToken2022Ata(mint: PublicKey, owner: PublicKey): PublicKey {
+  return getAssociatedTokenAddressSync(mint, owner, false, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID);
+}
+
+/**
+ * Find an existing ATA among SPL and Token-2022. Useful for balance queries.
+ */
+export async function findExistingAtaAny(
+  provider: AnchorProvider,
+  mint: PublicKey,
+  owner: PublicKey
+): Promise<{ ata: PublicKey; programId: PublicKey } | null> {
+  const splAta = deriveSplAta(mint, owner);
+  const t22Ata = deriveToken2022Ata(mint, owner);
+
+  const [splInfo, t22Info] = await Promise.all([
+    provider.connection.getAccountInfo(splAta),
+    provider.connection.getAccountInfo(t22Ata),
+  ]);
+
+  if (splInfo) return { ata: splAta, programId: TOKEN_PROGRAM_ID };
+  if (t22Info) return { ata: t22Ata, programId: TOKEN_2022_PROGRAM_ID };
+  return null;
+}
+
+/**
+ * For tx construction with classic SPL program. If not exists, the tx creating
+ * instructions should include ATA creation externally. Tests may create it.
+ */
 export async function getOrCreateAta(
   provider: AnchorProvider,
   mint: PublicKey,
   owner: PublicKey
 ): Promise<PublicKey> {
-  const [ata] = await PublicKey.findProgramAddressSync(
-    [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    ASSOCIATED_TOKEN_PROGRAM_ID
-  );
-
-  try {
-    await provider.connection.getAccountInfo(ata);
-    return ata;
-  } catch (error) {
-    // ATA doesn't exist, will be created by the instruction
-    return ata;
-  }
+  const ata = deriveSplAta(mint, owner);
+  // If absent, caller should add create ATA ix; here we just return address.
+  // Keep signature for backward compatibility.
+  return ata;
 }
 
 export async function airdropSolIfNeeded(
@@ -72,22 +111,20 @@ export async function airdropSolIfNeeded(
 ): Promise<void> {
   const balance = await provider.connection.getBalance(pubkey);
   if (balance < amount * 1e9) {
-    const signature = await provider.connection.requestAirdrop(pubkey, amount * 1e9);
-    await provider.connection.confirmTransaction(signature);
+    const sig = await provider.connection.requestAirdrop(pubkey, amount * 1e9);
+    const latest = await provider.connection.getLatestBlockhash();
+    await provider.connection.confirmTransaction({ signature: sig, ...latest }, 'confirmed');
   }
 }
 
 export function generateContractId(): number[] {
-  return Array.from(crypto.getRandomValues(new Uint8Array(32)));
+  const rnd = randomBytes(32);
+  return Array.from(rnd);
 }
 
-export function hashDocument(content: string): number[] {
-  // Simple hash function - in production, use proper hashing
-  const encoder = new TextEncoder();
-  const data = encoder.encode(content);
-  const hash = new Uint8Array(32);
-  for (let i = 0; i < data.length && i < 32; i++) {
-    hash[i] = data[i];
-  }
-  return Array.from(hash);
+export function hashDocument(content: string | Buffer): number[] {
+  const buf = Buffer.isBuffer(content) ? content : Buffer.from(content, 'utf8');
+  const digest = createHash('sha256').update(buf).digest();
+  // Ensure 32 bytes
+  return Array.from(digest.subarray(0, 32));
 }

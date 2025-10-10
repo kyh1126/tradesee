@@ -1,4 +1,5 @@
 import { PublicKey, Transaction, SystemProgram, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
+import * as anchor from '@coral-xyz/anchor';
 import { Program, AnchorProvider } from '@coral-xyz/anchor';
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { TradeseeEscrow } from '../target/types/tradesee_escrow';
@@ -8,9 +9,9 @@ import {
   deriveTrustScorePda, 
   deriveOracleFlagPda,
   getOrCreateAta,
-  generateContractId,
-  CreateContractParams 
+  generateContractId
 } from './utils';
+import { CreateContractParams } from './types';
 
 export class TradeseeClient {
   constructor(

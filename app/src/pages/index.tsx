@@ -20,7 +20,8 @@ const mockTrades = [
     weight: '220kg',
     date: '2025.08.12',
     status: 'In transit',
-    statusColor: 'bg-blue-500'
+    statusColor: 'bg-blue-500',
+    autoRelease: true
   },
   {
     id: 'LB25NNEO32036',
@@ -29,7 +30,8 @@ const mockTrades = [
     weight: '150kg',
     date: '2025.08.10',
     status: 'Pending',
-    statusColor: 'bg-orange-500'
+    statusColor: 'bg-orange-500',
+    autoRelease: false
   },
   {
     id: 'LB25NNEO32037',
@@ -38,7 +40,8 @@ const mockTrades = [
     weight: '80kg',
     date: '2025.08.08',
     status: 'Complete',
-    statusColor: 'bg-green-500'
+    statusColor: 'bg-green-500',
+    autoRelease: true
   },
   {
     id: 'LB25NNEO32038',
@@ -47,7 +50,8 @@ const mockTrades = [
     weight: '300kg',
     date: '2025.08.05',
     status: 'In transit',
-    statusColor: 'bg-blue-500'
+    statusColor: 'bg-blue-500',
+    autoRelease: false
   }
 ];
 

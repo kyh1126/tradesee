@@ -36,8 +36,8 @@ Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스
 ## 사전 준비물
 
 - Rust 최신 안정판
-- Solana CLI v1.16+
-- Anchor v0.31.x
+- Solana CLI v2.3.13+ (Anza)
+- Anchor v0.31.1
 - Node.js v18+
 - npm 또는 yarn
 
@@ -165,8 +165,8 @@ ts/                              # (선택) SDK/테스트
 ## 요구 사항
 
 - Node.js 18+
-- Solana CLI 1.16+
-- Anchor 0.31.x
+- Solana CLI 2.3.13+ (Anza)
+- Anchor 0.31.1
 
 ## 설치 및 실행
 

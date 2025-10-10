@@ -16,6 +16,7 @@ interface Contract {
   depositRate?: string;
   expiredDate?: string;
   contractTerms?: string;
+  autoRelease?: boolean;
   uploadedFile?: {
     name: string;
     size: number;
@@ -115,6 +116,14 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
                     <div className="flex justify-between">
                       <span className="text-gray-400">Expired Date:</span>
                       <span className="text-white font-medium">{contract.expiredDate}</span>
+                    </div>
+                  )}
+                  {contract.autoRelease !== undefined && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Auto Release:</span>
+                      <span className={`font-medium ${contract.autoRelease ? 'text-green-400' : 'text-orange-400'}`}>
+                        {contract.autoRelease ? 'Enabled' : 'Disabled'}
+                      </span>
                     </div>
                   )}
                 </div>
