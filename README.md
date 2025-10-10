@@ -1,440 +1,250 @@
-# Tradesee - Solana Escrow Platform
+# Tradesee - Solana Escrow Platform (프로토콜/스마트컨트랙트 중심)
 
-A production-quality escrow platform built on Solana using Anchor framework. Tradesee implements secure escrow contracts with document anchoring, trust scoring, and oracle integration.
+Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스크로 플랫폼입니다. 에스크로 계약, 문서 해시 앵커링, 트러스트 스코어, 오라클 통합을 포함한 전체 설계를 목표로 합니다.
 
-## Features
+## 기능 개요
 
-### Step 1: Escrow & Document Hash Anchoring ✅
-- **Initialize Contract**: Create escrow contracts with buyer/seller, milestones, expiry, and document hashing
-- **Deposit Payin**: Secure USDC deposits into escrow
-- **Release Payout**: Automatic or milestone-based fund release
-- **Refund**: Expired contract refunds with safety checks
-- **Document Anchoring**: Keccak256/SHA256 document hashing for verification
+### 1) 에스크로 & 문서 해시 앵커링 ✅
+- Initialize Contract: 구매자/판매자, 만료, 문서 해시, 금액 등으로 계약 생성
+- Deposit Payin: USDC 예치
+- Release Payout: 자동/마일스톤 기반 지급
+- Refund: 만료 후 안전한 환불
+- Document Anchoring: Keccak256/SHA256 기반 문서 검증
 
-### Step 2: Trust Score Anchoring (Stub) ✅
-- **Anchor Trust Scores**: Off-chain computed trust scores (0-1000) anchored on-chain
-- **Authority-based Scoring**: Configurable authority system for trust score management
+### 2) 트러스트 스코어 앵커링(Stub) ✅
+- 오프체인 산출 스코어(0-1000)를 온체인에 앵커링
+- Authority 기반 스코어 관리
 
-### Step 3: Oracle Integration (Stub) ✅
-- **Oracle Results**: Boolean oracle results for shipment verification
-- **Event Emission**: Rich event system for off-chain monitoring
-- **Extensible Design**: Ready for future oracle integrations
+### 3) 오라클 통합(Stub) ✅
+- 운송 검증을 위한 불리언 결과 앵커링
+- 오프체인 모니터링을 위한 이벤트 방출
 
-## Architecture
+## 아키텍처
 
-### Smart Contract (Rust + Anchor)
-- **Program ID**: `Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS`
-- **Accounts**: Contract, TrustScore, OracleFlag PDAs
-- **Security**: Comprehensive validation, reentrancy protection, role-based access
+### 스마트컨트랙트 (Rust + Anchor)
+- Program ID: `.env` 또는 `Anchor.toml` 참고
+- PDA: Contract, TrustScore, OracleFlag 등
+- 보안: 입력 검증, 재진입 방지, 역할 기반 접근
 
-### Frontend (Next.js + React)
-- **Wallet Integration**: Phantom, Solflare support
-- **Real-time Updates**: Contract status monitoring
-- **User-friendly**: Intuitive contract creation and management
+### 프런트엔드 (Next.js + React)
+- 지갑 연동(Phantom/Solflare)
+- 계약 생성/상태 표시
 
 ### SDK (TypeScript)
-- **Client Wrapper**: Easy-to-use program interaction
-- **Utilities**: PDA derivation, ATA management, helper functions
-- **Type Safety**: Full TypeScript support with generated types
+- 클라이언트 래퍼, PDA/ATA 유틸, 타입 지원
 
-## Prerequisites
+## 사전 준비물
 
-- **Rust** (latest stable)
-- **Solana CLI** (v1.16+)
-- **Anchor Framework** (v0.29+)
-- **Node.js** (v18+)
-- **Yarn** or **npm**
+- Rust 최신 안정판
+- Solana CLI v1.16+
+- Anchor v0.31.x
+- Node.js v18+
+- npm 또는 yarn
 
-## Quick Start
-
-### 1. Clone and Setup
+## 빠른 시작
 
 ```bash
 git clone <repository-url>
 cd tradesee
 
-# Install dependencies
+# 의존성 설치
 cd ts && npm install
 cd ../app && npm install
 ```
 
-### 2. Environment Setup
+### 환경 변수 (app/.env.local)
 
-Copy the environment file and configure:
-
-```bash
-cd app
-cp env.example .env.local
-```
-
-**Required Environment Variables** (`.env.local`):
 ```env
-# Solana Network Configuration
 NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
-NEXT_PUBLIC_USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
-NEXT_PUBLIC_PROGRAM_ID=Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
-
-# App Configuration
-NEXT_PUBLIC_APP_NAME=Tradesee
-NEXT_PUBLIC_APP_VERSION=0.1.0
-NEXT_PUBLIC_DEBUG_MODE=true
+NEXT_PUBLIC_USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v  # 필요 시 Devnet 민트로 교체
+NEXT_PUBLIC_PROGRAM_ID=<Program ID>
 ```
 
-### 3. Start Development Server
+### 개발 서버 실행
 
 ```bash
 cd app
 npm run dev
+# http://localhost:3000
 ```
 
-The application will be available at `http://localhost:3000`
+## 사용 흐름(프로토콜 관점)
 
-### 4. Demo Path
+1) 지갑 연결 → 2) 계약 생성(금액/만료/문서해시 등) → 3) 예치 → 4) 지급 또는 환불 → 5) 이벤트/상태 확인
 
-1. **Connect Wallet**: Use Phantom or Solflare wallet
-2. **View Dashboard**: See balance placeholder and active trades list
-3. **Create New Trade**: Click "Create New Trade" button
-4. **Document Anchoring**: Upload a file and see SHA256 hash computation
-5. **Solana Pay Demo**: Click "Create/Deposit" to see Solana Pay URL/QR
-6. **Test Script**: Run `npm run test:pay` to generate test Solana Pay URLs
+## API 개요
 
-### 5. Local Development
+### 핵심 인스트럭션
 
-#### Option A: Local Validator (Recommended for Development)
+#### initialize_contract
+- 매개변수: `contract_id [u8;32]`, `seller Pubkey`, `amount_expected u64`, `milestones_total u8`, `expiry_ts i64`, `auto_release_on_expiry bool`, `doc_hash [u8;32]`
 
-```bash
-# Terminal 1: Start local validator
-solana-test-validator --reset
+#### deposit_payin
+- 예치자(Buyer)만 실행, 금액 일치 및 만료 전 조건
 
-# Terminal 2: Build and test
-cd ts
-npm run build
-npm run test
+#### release_payout
+- 마일스톤 완료 또는 자동지급 조건 만족 시 판매자에게 지급
 
-# Terminal 3: Start frontend
-cd app
-npm run dev
-```
+#### refund
+- 만료, 자동지급 비활성, 미지급 상태에서 환불
 
-#### Option B: Devnet Deployment
+### 계정 구조(요약)
 
-```bash
-# Build and deploy to devnet
-cd ts
-npm run build
-npm run devnet
+Contract, TrustScore, OracleFlag 계정에 계약/스코어/오라클 상태를 저장합니다.
 
-# Start frontend
-cd ../app
-npm run dev
-```
+### 이벤트(요약)
 
-### 4. Create Local USDC Mint (Optional)
+`ContractInitialized`, `PayinDeposited`, `PayoutReleased`, `Refunded`, `TrustScoreAnchored`, `OracleUpdated` 등 상태 전이를 이벤트로 방출합니다.
 
-For local testing, create a test USDC mint:
-
-```bash
-cd ts
-npx ts-node ../scripts/local-usdc-mint.ts
-```
-
-## Usage
-
-### Creating an Escrow Contract
-
-1. **Connect Wallet**: Use Phantom or Solflare
-2. **Fill Contract Form**:
-   - Seller address
-   - USDC amount
-   - Number of milestones
-   - Expiry time
-   - Document content (will be hashed)
-   - Auto-release option
-3. **Submit Transaction**: Sign and confirm
-
-### Contract Lifecycle
-
-1. **Initialized**: Contract created, awaiting deposit
-2. **Deposited**: USDC deposited, contract active
-3. **Released**: Funds sent to seller (milestones complete or auto-release)
-4. **Refunded**: Funds returned to buyer (expired, no auto-release)
-
-### Trust Score Management
-
-```typescript
-// Anchor a trust score
-const tx = await client.anchorTrustScore(counterparty, 850); // 85%
-await provider.sendAndConfirm(tx, [authority]);
-
-// Read trust score
-const score = await client.getTrustScore(authority, counterparty);
-```
-
-### Oracle Integration
-
-```typescript
-// Set oracle result
-const tx = await client.setOracleResult(contract, true); // shipment verified
-await provider.sendAndConfirm(tx, [oracleAuthority]);
-```
-
-## API Reference
-
-### Core Instructions
-
-#### `initialize_contract`
-Creates a new escrow contract with specified parameters.
-
-**Parameters**:
-- `contract_id: [u8; 32]` - Unique contract identifier
-- `seller: Pubkey` - Seller's public key
-- `amount_expected: u64` - Expected USDC amount
-- `milestones_total: u8` - Total number of milestones
-- `expiry_ts: i64` - Expiry timestamp
-- `auto_release_on_expiry: bool` - Auto-release flag
-- `doc_hash: [u8; 32]` - Document hash
-
-#### `deposit_payin`
-Deposits USDC into the escrow contract.
-
-**Requirements**:
-- Buyer must be the initializer
-- Amount must match `amount_expected`
-- Contract must not be expired
-
-#### `release_payout`
-Releases funds to the seller.
-
-**Conditions**:
-- All milestones completed, OR
-- Auto-release enabled and contract expired
-
-#### `refund`
-Refunds funds to the buyer.
-
-**Conditions**:
-- Contract expired
-- Auto-release disabled
-- Not already released/refunded
-
-### Account Structures
-
-#### Contract Account
-```rust
-pub struct Contract {
-    pub initializer: Pubkey,        // Buyer
-    pub seller: Pubkey,             // Seller
-    pub usdc_mint: Pubkey,          // USDC mint address
-    pub escrow_vault: Pubkey,       // Escrow token account
-    pub contract_id: [u8; 32],      // Unique contract ID
-    pub amount_expected: u64,       // Expected USDC amount
-    pub milestones_total: u8,       // Total milestones
-    pub milestones_completed: u8,   // Completed milestones
-    pub auto_release_on_expiry: bool, // Auto-release flag
-    pub expiry_ts: i64,             // Expiry timestamp
-    pub doc_hash: [u8; 32],         // Document hash
-    pub bump: u8,                   // PDA bump
-    pub released: bool,             // Release status
-    pub refunded: bool,             // Refund status
-    pub created_at: i64,            // Creation timestamp
-    pub updated_at: i64,            // Last update timestamp
-}
-```
-
-#### TrustScore Account
-```rust
-pub struct TrustScore {
-    pub authority: Pubkey,          // Scoring authority
-    pub counterparty: Pubkey,       // Scored entity
-    pub score: u16,                 // Trust score (0-1000)
-    pub updated_at: i64,            // Last update timestamp
-    pub bump: u8,                   // PDA bump
-}
-```
-
-#### OracleFlag Account
-```rust
-pub struct OracleFlag {
-    pub shipment_verified: bool,    // Oracle result
-    pub updated_by: Pubkey,         // Oracle authority
-    pub updated_at: i64,            // Last update timestamp
-    pub bump: u8,                   // PDA bump
-}
-```
-
-## Security Features
-
-### Access Control
-- **Role-based permissions**: Buyer, seller, oracle authority roles
-- **Signer validation**: Comprehensive signer checks
-- **Authority constraints**: PDA-based authority verification
-
-### Reentrancy Protection
-- **One-shot flags**: `released` and `refunded` prevent double execution
-- **State validation**: Pre-transaction state checks
-- **Atomic operations**: All-or-nothing transaction execution
-
-### Input Validation
-- **Amount validation**: Positive amounts, exact matches
-- **Timestamp validation**: Future expiry times
-- **Score bounds**: Trust scores limited to 0-1000
-- **Milestone validation**: Positive milestone counts
-
-### Error Handling
-- **Custom error codes**: Detailed error messages
-- **Require statements**: Anchor's built-in validation
-- **Graceful failures**: Proper error propagation
-
-## Events
-
-All state transitions emit rich events for monitoring:
-
-```rust
-// Contract lifecycle events
-ContractInitialized { contract, initializer, seller, amount_expected, expiry_ts }
-PayinDeposited { contract, amount, buyer }
-PayoutReleased { contract, amount, seller }
-Refunded { contract, amount, buyer }
-
-// Trust and oracle events
-TrustScoreAnchored { authority, counterparty, score }
-OracleUpdated { contract, shipment_verified, updated_by }
-```
-
-## Testing
-
-### Running Tests
+## 테스트
 
 ```bash
 cd ts
 npm run test
 ```
 
-### Test Coverage
+주요 시나리오: Init→Deposit→Release, Init→Deposit→Refund, 오류 케이스(서명/금액/중복), 트러스트/오라클 작성/조회 등
 
-- ✅ **Happy Path**: Init → Deposit → Release
-- ✅ **Refund Path**: Init → Deposit → Refund (expired)
-- ✅ **Error Cases**: Wrong signer, amount mismatch, double execution
-- ✅ **Trust Scores**: Write, read, update, validation
-- ✅ **Oracle Results**: Set, update, multiple authorities
+## 배포
 
-### Test Utilities
-
-```typescript
-// Helper functions
-deriveContractPda(programId, initializer, contractId)
-deriveEscrowVaultPda(programId, contract)
-deriveTrustScorePda(programId, authority, counterparty)
-deriveOracleFlagPda(programId, contract)
-
-// Utility functions
-getOrCreateAta(provider, mint, owner)
-airdropSolIfNeeded(provider, pubkey, amount)
-generateContractId()
-hashDocument(content)
-```
-
-## Deployment
-
-### Devnet Deployment
-
+### Devnet
 ```bash
-# Set cluster to devnet
 solana config set --url https://api.devnet.solana.com
-
-# Build and deploy
 cd ts
 npm run build
 npm run devnet
 ```
 
-### Mainnet Deployment
-
+### Mainnet
 ```bash
-# Set cluster to mainnet
 solana config set --url https://api.mainnet-beta.solana.com
-
-# Update program ID in anchor.toml
-# Build and deploy
-cd ts
-npm run build
-anchor deploy
+# anchor.toml Program ID 갱신 후 빌드/배포
 ```
 
-## Development Workflow
+## 개발 워크플로우
 
-### 1. Program Development
-```bash
-cd programs/tradesee_escrow
-# Edit src/lib.rs
-anchor build
-```
+1) 프로그램 개발(`programs/tradesee_escrow`) → `anchor build`
+2) 테스트(`ts`) → `npm run test`
+3) 프런트(`app`) → `npm run dev`
+4) IDL 동기화 필요 시 빌드 후 복사
 
-### 2. Testing
-```bash
-cd ts
-npm run test
-```
+## 트러블슈팅(요약)
 
-### 3. Frontend Development
-```bash
-cd app
-npm run dev
-```
+- InvalidAuthority/AmountMismatch 등: 서명자/금액/상태 검증 확인
+- RPC 이슈: RPC URL/네트워크 설정 확인
+- 디버그: `RUST_LOG=debug`로 상세 로그
 
-### 4. IDL Updates
-```bash
-cd ts
-npm run build
-npm run idl:copy
-```
+## 라이선스
 
-## Troubleshooting
-
-### Common Issues
-
-1. **"InvalidAuthority" Error**
-   - Check signer matches expected role
-   - Verify PDA derivation
-
-2. **"AmountMismatch" Error**
-   - Ensure deposit amount equals `amount_expected`
-   - Check USDC decimal places (6 decimals)
-
-3. **"AlreadyReleased" Error**
-   - Contract already executed
-   - Check contract state
-
-4. **RPC Connection Issues**
-   - Verify RPC URL in environment
-   - Check network connectivity
-
-### Debug Mode
-
-Enable debug logging:
-```bash
-export RUST_LOG=debug
-anchor test
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make changes with tests
-4. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Support
-
-- **Documentation**: This README
-- **Issues**: GitHub Issues
-- **Discord**: [Community Discord]
-- **Email**: [Support Email]
+MIT License
 
 ---
 
-**Built with ❤️ using Solana, Anchor, and Rust**
+UI/프로토타입 사용 가이드는 `README-UI.md`를 참고하세요.
+
+## 폴더 구조(일부)
+
+```
+app/
+  src/
+    components/
+      AccountBalanceCard.tsx      # USDC 잔액 카드(클라이언트 전용)
+      CreateContractModal.tsx     # 새 계약 생성 모달
+      ContractDetailModal.tsx     # 계약 상세 모달
+      WalletConnect.tsx           # 지갑/Connection Provider
+    pages/
+      index.tsx                   # 대시보드(SSR 비활성화)
+      _app.tsx                    # 글로벌 스타일 주입
+    styles/globals.css            # Tailwind + 커스텀 스타일
+  tailwind.config.js
+  postcss.config.js
+programs/tradesee_escrow/        # Anchor 프로그램(Rust)
+ts/                              # (선택) SDK/테스트
+```
+
+## 요구 사항
+
+- Node.js 18+
+- Solana CLI 1.16+
+- Anchor 0.31.x
+
+## 설치 및 실행
+
+```bash
+git clone <repository-url>
+cd tradesee
+
+# 의존성 설치
+cd app && npm install
+
+# (선택) 백엔드/SDK가 필요하면 ts 디렉토리도 설치
+# cd ../ts && npm install
+```
+
+### 환경 변수 설정 (app/.env.local)
+
+```env
+NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
+# Devnet USDC 민트(예시): 표준 Devnet USDC 민트 또는 본인의 커스텀 민트 주소
+NEXT_PUBLIC_USDC_MINT=4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
+
+# (선택) 프로그램 ID – 프론트 일부 기능에서 참조
+NEXT_PUBLIC_PROGRAM_ID=<Devnet Program ID>
+```
+
+설정 후 개발 서버 실행:
+
+```bash
+cd app
+npm run dev
+# http://localhost:3000 접속
+```
+
+## 사용 방법
+
+1) 지갑 연결(우상단 버튼)
+- Phantom 또는 Solflare
+- 네트워크는 Devnet 사용을 권장합니다
+
+2) USDC 잔액 표시
+- My Account 카드에 잔액이 표시됩니다
+- 잔액 로직은 SPL과 Token‑2022의 ATA를 모두 계산하여 병렬 조회합니다
+- `.env.local`의 `NEXT_PUBLIC_USDC_MINT`가 지갑에 보유한 USDC의 민트와 일치해야 합니다
+
+3) 새 계약 생성
+- Create New Trade 클릭 → 모달 입력
+- Exporter/Importer 주소 검증, Use my wallet 버튼 제공
+- From/To Country, Weight(kg), Contract Value(USDC) 등 입력
+- 파일 업로드 시 SHA‑256 해시 자동 계산 및 복사 가능
+- Generate Contract & Share → Solana Pay 링크 새 탭 오픈 + 홈 목록에 반영
+
+4) 계약 상세 보기
+- 카드 클릭 → 상세 모달에서 모든 정보 확인
+
+## 트러블슈팅
+
+- My Account에 잔액이 0 또는 미표시
+  - 지갑 네트워크가 Devnet인지 확인
+  - `.env.local`의 `NEXT_PUBLIC_USDC_MINT`가 실제 보유한 토큰의 민트와 일치하는지 확인
+  - 하드 리프레시(Cmd+Shift+R)로 지갑 어댑터 초기화 이슈 방지
+
+- WalletContext 관련 에러(SSR 시점 오류)
+  - 홈 페이지는 `ssr: false`로 동작하며, 잔액 카드는 클라이언트 전용입니다
+  - 그래도 문제가 있으면 새로고침 후 지갑 재연결
+
+- Tailwind/PostCSS 오류
+  - `tailwind.config.js`, `postcss.config.js`는 CommonJS로 설정되어 있습니다
+  - 전처리 캐시 이슈가 있으면 개발 서버를 재시작하세요
+
+## 스크립트(일부)
+
+- `app/scripts/test-solana-pay.js`: Solana Pay URL 생성 테스트
+- `scripts/local-usdc-mint.ts`: 로컬 테스트용 USDC 민트 생성(선택)
+
+## 라이선스
+
+MIT License
+
+---
+
+Built with Solana, Anchor, Next.js
