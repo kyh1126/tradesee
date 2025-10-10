@@ -16,7 +16,8 @@ export function getProgram(wallet: Wallet): Program {
     const provider = new AnchorProvider(connection, wallet, {
       commitment: 'confirmed',
     });
-    program = new Program(idl as any, provider);
+    // Pass PROGRAM_ID explicitly; constructor expects (idl, provider, programId)
+    program = new Program(idl as any, provider, PROGRAM_ID);
   }
   return program;
 }
