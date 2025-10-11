@@ -4,18 +4,19 @@ Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스
 
 ## 기능 개요
 
-### 1) 에스크로 & 문서 해시 앵커링 ✅
+### 1) 에스크로 & 문서 해시 앵커링
 - Initialize Contract: 구매자/판매자, 만료, 문서 해시, 금액 등으로 계약 생성
-- Deposit Payin: USDC 예치
+- Deposit Payin: USDC 예치 (SPL Token + Token-2022 지원)
 - Release Payout: 자동/마일스톤 기반 지급
 - Refund: 만료 후 안전한 환불
-- Document Anchoring: Keccak256/SHA256 기반 문서 검증
+- Document Anchoring: SHA256 기반 문서 검증
+- Environment Variables: USDC_MINT, RPC_URL 환경변수 지원
 
-### 2) 트러스트 스코어 앵커링(Stub) ✅
+### 2) 트러스트 스코어 앵커링(Stub)
 - 오프체인 산출 스코어(0-1000)를 온체인에 앵커링
 - Authority 기반 스코어 관리
 
-### 3) 오라클 통합(Stub) ✅
+### 3) 오라클 통합(Stub)
 - 운송 검증을 위한 불리언 결과 앵커링
 - 오프체인 모니터링을 위한 이벤트 방출
 
@@ -32,6 +33,8 @@ Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스
 
 ### SDK (TypeScript)
 - 클라이언트 래퍼, PDA/ATA 유틸, 타입 지원
+- SPL Token + Token-2022 양방향 지원
+- 환경변수 기반 설정 관리
 
 ## 사전 준비물
 
@@ -40,6 +43,26 @@ Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스
 - Anchor v0.31.1
 - Node.js v20.18.0+ (TS SDK 최신 버전 요구사항)
 - npm 또는 yarn
+
+## 환경변수 설정
+
+### 앱 환경변수 (app/.env.local)
+```bash
+# Solana Network Configuration
+NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
+NEXT_PUBLIC_USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
+NEXT_PUBLIC_PROGRAM_ID=Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
+
+# App Configuration
+NEXT_PUBLIC_APP_NAME=Tradesee
+NEXT_PUBLIC_APP_VERSION=0.1.0
+NEXT_PUBLIC_DEBUG_MODE=true
+```
+
+### 주요 환경변수 설명
+- `NEXT_PUBLIC_RPC_URL`: Solana RPC 엔드포인트 (Devnet/Mainnet)
+- `NEXT_PUBLIC_USDC_MINT`: USDC 토큰 민트 주소 (SPL Token 또는 Token-2022)
+- `NEXT_PUBLIC_PROGRAM_ID`: 배포된 프로그램 ID
 
 ## 프로젝트 구조
 

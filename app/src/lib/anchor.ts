@@ -2,10 +2,11 @@ import { AnchorProvider, Program, Wallet } from '@coral-xyz/anchor';
 import { Connection, PublicKey } from '@solana/web3.js';
 import idl from './idl/tradesee_escrow.json';
 import { TradeseeClient } from './sdk';
+import { getRpcUrl, getUsdcMint } from './utils';
 
 const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID!);
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL!;
-const USDC_MINT = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT!);
+const RPC_URL = getRpcUrl();
+const USDC_MINT = getUsdcMint();
 
 let program: Program | null = null;
 let client: TradeseeClient | null = null;

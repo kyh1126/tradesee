@@ -29,7 +29,7 @@ export function generateSolanaPayURL(recipient: string, amount: number, label?: 
 
 import { PublicKey } from '@solana/web3.js';
 import { AnchorProvider } from '@coral-xyz/anchor';
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export function deriveContractPda(
   programId: PublicKey,
@@ -89,6 +89,72 @@ export async function getOrCreateAta(
   } catch {
     return ata;
   }
+}
+
+// Get USDC mint from environment variables
+export function getUsdcMint(): PublicKey {
+  const usdcMint = process.env.NEXT_PUBLIC_USDC_MINT;
+  if (!usdcMint) {
+    throw new Error('NEXT_PUBLIC_USDC_MINT environment variable is required');
+  }
+  return new PublicKey(usdcMint);
+}
+
+// Get RPC URL from environment variables
+export function getRpcUrl(): string {
+  return process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
+}
+
+// Support both SPL Token and Token-2022
+export async function getOrCreateAtaWithTokenProgram(
+  provider: AnchorProvider,
+  mint: PublicKey,
+  owner: PublicKey,
+  tokenProgram: PublicKey = TOKEN_PROGRAM_ID
+): Promise<PublicKey> {
+  const [ata] = PublicKey.findProgramAddressSync(
+    [owner.toBuffer(), tokenProgram.toBuffer(), mint.toBuffer()],
+    ASSOCIATED_TOKEN_PROGRAM_ID
+  );
+  try {
+    await provider.connection.getAccountInfo(ata);
+    return ata;
+  } catch {
+    return ata;
+  }
+}
+
+// Try both SPL Token and Token-2022 for ATA creation
+export async function getOrCreateAtaUniversal(
+  provider: AnchorProvider,
+  mint: PublicKey,
+  owner: PublicKey
+): Promise<{ ata: PublicKey; tokenProgram: PublicKey }> {
+  try {
+    // Try SPL Token first
+    const ata = await getOrCreateAtaWithTokenProgram(provider, mint, owner, TOKEN_PROGRAM_ID);
+    const accountInfo = await provider.connection.getAccountInfo(ata);
+    if (accountInfo) {
+      return { ata, tokenProgram: TOKEN_PROGRAM_ID };
+    }
+  } catch (error) {
+    console.log('SPL Token ATA not found, trying Token-2022...');
+  }
+
+  try {
+    // Try Token-2022
+    const ata = await getOrCreateAtaWithTokenProgram(provider, mint, owner, TOKEN_2022_PROGRAM_ID);
+    const accountInfo = await provider.connection.getAccountInfo(ata);
+    if (accountInfo) {
+      return { ata, tokenProgram: TOKEN_2022_PROGRAM_ID };
+    }
+  } catch (error) {
+    console.log('Token-2022 ATA not found');
+  }
+
+  // If neither exists, default to SPL Token
+  const ata = await getOrCreateAtaWithTokenProgram(provider, mint, owner, TOKEN_PROGRAM_ID);
+  return { ata, tokenProgram: TOKEN_PROGRAM_ID };
 }
 
 
