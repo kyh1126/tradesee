@@ -117,6 +117,33 @@ function HomePage() {
     }, 0);
   };
 
+  // 계약 상태 업데이트 함수
+  const handleStatusUpdate = (contractId: string, newStatus: string) => {
+    console.log('🔄 handleStatusUpdate called:', { contractId, newStatus });
+    
+    setContracts(prev => {
+      console.log('📋 Current contracts:', prev.length);
+      const updated = prev.map(contract => {
+        if (contract.id === contractId) {
+          console.log('✅ Found contract to update:', contract.id, '->', newStatus);
+          return { 
+            ...contract, 
+            status: newStatus,
+            statusColor: newStatus === 'In transit' ? 'bg-blue-500' : 
+                        newStatus === 'Complete' ? 'bg-green-500' : 
+                        newStatus === 'Pending' ? 'bg-orange-500' : 'bg-gray-500'
+          };
+        }
+        return contract;
+      });
+      
+      console.log('📋 Updated contracts:', updated.length);
+      return updated;
+    });
+    
+    console.log('✅ handleStatusUpdate completed');
+  };
+
   return (
     <WalletConnect>
       <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900">
@@ -215,6 +242,7 @@ function HomePage() {
                     setShowContractDetail(false);
                     setSelectedContract(null);
                   }}
+                  onStatusUpdate={handleStatusUpdate}
                 />
               )}
         {showProfileModal && (

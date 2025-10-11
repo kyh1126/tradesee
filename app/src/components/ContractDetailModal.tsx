@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import DepositPayinButton from './DepositPayinButton';
 
 interface Contract {
   id: string;
@@ -28,9 +29,18 @@ interface Contract {
 interface ContractDetailModalProps {
   contract: Contract;
   onClose: () => void;
+  onStatusUpdate?: (contractId: string, newStatus: string) => void;
 }
 
-const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onClose }) => {
+const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onClose, onStatusUpdate }) => {
+  const [currentContract, setCurrentContract] = useState(contract);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // 계약 상태가 변경되면 로컬 상태도 업데이트
+  useEffect(() => {
+    setCurrentContract(contract);
+  }, [contract]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Complete':
@@ -42,6 +52,23 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
       default:
         return 'bg-gray-500';
     }
+  };
+
+  // 상태 업데이트 후 새로고침 함수
+  const refreshContractStatus = async () => {
+    console.log('🔄 Refreshing contract status...');
+    setIsRefreshing(true);
+    
+    // 상태 업데이트 후 잠시 대기
+    setTimeout(() => {
+      setCurrentContract(prev => ({
+        ...prev,
+        status: 'In transit',
+        statusColor: 'bg-blue-500'
+      }));
+      setIsRefreshing(false);
+      console.log('✅ Contract status refreshed to In transit');
+    }, 1000);
   };
 
   return (
@@ -62,9 +89,9 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
 
         {/* Contract ID and Status */}
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-white">{contract.id}</h3>
-          <span className={`${getStatusColor(contract.status)} text-white px-4 py-2 rounded-full text-sm font-medium`}>
-            {contract.status}
+          <h3 className="text-xl font-bold text-white">{currentContract.id}</h3>
+          <span className={`${getStatusColor(currentContract.status)} text-white px-4 py-2 rounded-full text-sm font-medium ${isRefreshing ? 'animate-pulse' : ''}`}>
+            {isRefreshing ? 'Updating...' : currentContract.status}
           </span>
         </div>
 
@@ -198,9 +225,146 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
                 <button className="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                   Download Contract
                 </button>
-                {contract.status === 'Pending' && (
-                  <button className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                    Approve Contract
+                {/* Pending 상태에서만 DepositPayinButton 표시 */}
+                {currentContract.status === 'Pending' && (
+                  <DepositPayinButton 
+                    contractPda={currentContract.id} // 실제 계약 ID 사용
+                    amount={parseFloat(currentContract.contractValue || currentContract.amount)}
+                    onSuccess={async () => {
+                      alert('Deposit verified successfully! Contract status will be updated.');
+                      
+                      // 블록체인에 상태 업데이트 트랜잭션 전송
+                      try {
+                        console.log('🚀 Starting blockchain update...');
+                        
+                        // Check if wallet is connected
+                        if (!publicKey) {
+                          throw new Error('Wallet not connected');
+                        }
+                        
+                        const { getClient } = await import('../lib/anchor');
+                        
+                        // Create a mock wallet for the client
+                        const mockWallet = {
+                          publicKey: publicKey,
+                          signTransaction: async (tx: any) => {
+                            // This will be handled by the wallet adapter
+                            return tx;
+                          },
+                          signAllTransactions: async (txs: any[]) => {
+                            return txs;
+                          }
+                        };
+                        
+                        const client = getClient(mockWallet as any);
+                        console.log('✅ Client initialized');
+                        
+                        const shipmentDetails = {
+                          trackingNumber: `TRK${Date.now()}`,
+                          carrier: 'DHL Express',
+                          estimatedDelivery: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 7일 후
+                          notes: 'Shipment started after deposit verification'
+                        };
+                        
+                        console.log('📦 Shipment details:', shipmentDetails);
+                        
+                        const tx = await client.updateToInTransit(
+                          new PublicKey(currentContract.id),
+                          shipmentDetails,
+                          {
+                            contractTerms: currentContract.contractTerms,
+                            uploadedFile: currentContract.uploadedFile
+                          }
+                        );
+                        
+                        console.log('📝 Transaction created:', tx);
+                        
+                        // 트랜잭션 전송
+                        const signature = await client.provider.sendAndConfirm(tx);
+                        console.log('✅ Blockchain status updated:', signature);
+                        
+                      } catch (error) {
+                        console.error('❌ Blockchain update failed:', error);
+                        alert('Blockchain update failed, but local status will be updated.');
+                      }
+                      
+                      // 로컬 상태 업데이트 - 항상 실행
+                      console.log('🔄 Updating local status...');
+                      console.log('Contract ID:', currentContract.id);
+                      console.log('onStatusUpdate function:', onStatusUpdate);
+                      
+                      if (onStatusUpdate) {
+                        console.log('✅ Calling onStatusUpdate...');
+                        onStatusUpdate(currentContract.id, 'In transit');
+                        console.log('✅ Local status updated to In transit');
+                      } else {
+                        console.error('❌ onStatusUpdate function is not provided');
+                      }
+                      
+                      // 모달 내부 상태도 새로고침
+                      refreshContractStatus();
+                    }}
+                    buyerAddress={currentContract.importer || ''} // Buyer 주소 전달
+                  />
+                )}
+                
+                {/* Pending 또는 In Transit 상태에서 Approve Contract 버튼 표시 */}
+                {(currentContract.status === 'Pending' || currentContract.status === 'In transit') && (
+                  <button 
+                    onClick={async () => {
+                      try {
+                        console.log('🚀 Starting contract approval/release...');
+                        
+                        // Check if wallet is connected
+                        if (!publicKey) {
+                          throw new Error('Wallet not connected');
+                        }
+                        
+                        const { getClient } = await import('../lib/anchor');
+                        
+                        // Create a mock wallet for the client
+                        const mockWallet = {
+                          publicKey: publicKey,
+                          signTransaction: async (tx: any) => {
+                            return tx;
+                          },
+                          signAllTransactions: async (txs: any[]) => {
+                            return txs;
+                          }
+                        };
+                        
+                        const client = getClient(mockWallet as any);
+                        console.log('✅ Client initialized for release');
+                        
+                        const tx = await client.releasePayout(new PublicKey(currentContract.id));
+                        console.log('📝 Release transaction created:', tx);
+                        
+                        // 트랜잭션 전송
+                        const signature = await client.provider.sendAndConfirm(tx);
+                        console.log('✅ Payment released successfully:', signature);
+                        
+                        alert(`✅ Payment released successfully!\n\nTransaction: ${signature}\n\nContract status will be updated to Complete.`);
+                        
+                        // 로컬 상태 업데이트
+                        if (onStatusUpdate) {
+                          onStatusUpdate(currentContract.id, 'Complete');
+                        }
+                        
+                        // 모달 내부 상태도 업데이트
+                        setCurrentContract(prev => ({
+                          ...prev,
+                          status: 'Complete',
+                          statusColor: 'bg-green-500'
+                        }));
+                        
+                      } catch (error) {
+                        console.error('❌ Release failed:', error);
+                        alert('❌ Release failed: ' + error.message);
+                      }
+                    }}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    {currentContract.status === 'Pending' ? 'Approve Contract' : 'Release Payment'}
                   </button>
                 )}
               </div>

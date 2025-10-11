@@ -113,11 +113,12 @@ const CreateContractModal: React.FC<CreateContractModalProps> = ({ onClose, onCo
   };
 
   const generateSolanaPayURL = (contractData: any) => {
-    // Solana Pay URL 생성 (실제 구현에서는 더 복잡한 로직이 필요)
+    // Solana Pay URL 생성 (USDC 토큰 명시)
     const baseURL = 'https://solana-pay.vercel.app/';
     const params = new URLSearchParams({
       recipient: contractData.importer,
       amount: contractData.contractValue,
+      token: '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU', // USDC mint address
       label: 'Tradesee Contract Payment',
       message: `Contract ID: ${Date.now()}`,
       memo: `Contract: ${contractData.exporter} -> ${contractData.importer}`

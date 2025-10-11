@@ -519,5 +519,64 @@ describe('tradesee_escrow', () => {
 
       console.log('Oracle result set:', tx);
     });
+
+    it('Update contract to In Transit status', async () => {
+      const { program, provider, buyer, seller, usdcMint, contractPda } = await setupTest();
+
+      // Initialize contract first
+      const contractId = Array.from(crypto.getRandomValues(new Uint8Array(32)));
+      const amountExpected = 1000000000; // 1000 USDC
+      const milestonesTotal = 3;
+      const expiryTs = Math.floor(Date.now() / 1000) + 86400; // 24 hours from now
+      const autoReleaseOnExpiry = false;
+      const docHash = Array.from(crypto.getRandomValues(new Uint8Array(32)));
+
+      await program.methods
+        .initializeContract(
+          contractId,
+          seller.publicKey,
+          new anchor.BN(amountExpected),
+          milestonesTotal,
+          new anchor.BN(expiryTs),
+          autoReleaseOnExpiry,
+          docHash
+        )
+        .accounts({
+          contract: contractPda,
+          initializer: buyer.publicKey,
+          usdcMint: usdcMint,
+          escrowVault: escrowVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+          rent: SYSVAR_RENT_PUBKEY,
+        })
+        .signers([buyer])
+        .rpc();
+
+      // Update contract to In Transit status
+      const shipmentDetails = {
+        trackingNumber: 'TRK123456789',
+        carrier: 'DHL Express',
+        estimatedDelivery: new anchor.BN(Math.floor(Date.now() / 1000) + 604800), // 7 days from now
+        notes: 'Shipment started after deposit verification'
+      };
+
+      const docHashUpdate = Array.from(crypto.getRandomValues(new Uint8Array(32)));
+
+      const tx = await program.methods
+        .updateToInTransit(shipmentDetails, docHashUpdate)
+        .accounts({
+          contract: contractPda,
+          authority: seller.publicKey, // Only seller can update to in transit
+        })
+        .signers([seller])
+        .rpc();
+
+      // Verify contract status updated
+      const contractData = await program.account.contract.fetch(contractPda);
+      expect(contractData.status).to.deep.equal({ inTransit: {} });
+
+      console.log('Contract updated to In Transit:', tx);
+    });
   });
 });

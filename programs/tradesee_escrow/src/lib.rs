@@ -39,6 +39,7 @@ pub mod tradesee_escrow {
         contract.auto_release_on_expiry = auto_release_on_expiry;
         contract.expiry_ts = expiry_ts;
         contract.doc_hash = doc_hash;
+        contract.status = ContractStatus::Pending;
         contract.bump = ctx.bumps.contract;
         contract.released = false;
         contract.refunded = false;
@@ -392,6 +393,7 @@ pub struct Contract {
     pub auto_release_on_expiry: bool,
     pub expiry_ts: i64,
     pub doc_hash: [u8; 32],
+    pub status: ContractStatus,
     pub bump: u8,
     pub released: bool,
     pub refunded: bool,
@@ -462,6 +464,54 @@ pub struct OracleUpdated {
     pub updated_by: Pubkey,
 }
 
+#[event]
+pub struct ShipmentStarted {
+    pub contract: Pubkey,
+    pub shipment_details: ShipmentDetails,
+    pub started_by: Pubkey,
+}
+
+#[event]
+pub struct DocumentUpdated {
+    pub contract: Pubkey,
+    pub doc_hash: [u8; 32],
+    pub updated_by: Pubkey,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+pub struct ShipmentDetails {
+    pub tracking_number: String,
+    pub carrier: String,
+    pub estimated_delivery: i64,
+    pub notes: String,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, PartialEq)]
+pub enum ContractStatus {
+    Pending,
+    InTransit,
+    Complete,
+    Refunded,
+}
+
+impl anchor_lang::Space for ContractStatus {
+    const INIT_SPACE: usize = 1; // 1 byte for enum discriminant
+}
+
+#[event]
+pub struct ContractStatusUpdated {
+    pub contract: Pubkey,
+    pub new_status: ContractStatus,
+    pub updated_by: Pubkey,
+}
+
+#[derive(Accounts)]
+pub struct UpdateContractStatus<'info> {
+    #[account(mut)]
+    pub contract: Account<'info, Contract>,
+    pub authority: Signer<'info>,
+}
+
 #[error_code]
 pub enum TradeseeError {
     #[msg("Invalid authority")]
@@ -495,3 +545,46 @@ pub enum TradeseeError {
     #[msg("Auto release is enabled")]
     AutoReleaseEnabled,
 }
+
+    /// Update contract to "In transit" status with shipment details
+    pub fn update_to_in_transit(
+        ctx: Context<UpdateContractStatus>,
+        shipment_details: ShipmentDetails,
+        doc_hash: [u8; 32],
+    ) -> Result<()> {
+        let contract = &mut ctx.accounts.contract;
+        let clock = Clock::get()?;
+
+        // Validate authority (only seller can update to in transit)
+        require!(
+            ctx.accounts.authority.key() == contract.seller,
+            TradeseeError::InvalidAuthority
+        );
+
+        // Update contract status to In Transit
+        contract.status = ContractStatus::InTransit;
+        contract.updated_at = clock.unix_timestamp;
+        
+        // Update document hash with new shipment documentation
+        contract.doc_hash = doc_hash;
+
+        emit!(ContractStatusUpdated {
+            contract: contract.key(),
+            new_status: ContractStatus::InTransit,
+            updated_by: ctx.accounts.authority.key(),
+        });
+
+        emit!(ShipmentStarted {
+            contract: contract.key(),
+            shipment_details,
+            started_by: ctx.accounts.authority.key(),
+        });
+
+        emit!(DocumentUpdated {
+            contract: contract.key(),
+            doc_hash,
+            updated_by: ctx.accounts.authority.key(),
+        });
+
+        Ok(())
+    }

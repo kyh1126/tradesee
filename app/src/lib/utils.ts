@@ -18,13 +18,16 @@ export async function computeSHA256(content: string): Promise<string> {
 }
 
 export function generateSolanaPayURL(recipient: string, amount: number, label?: string): string {
-  const baseURL = 'https://solana-pay.vercel.app';
-  const params = new URLSearchParams({
-    recipient,
-    amount: amount.toString(),
-    ...(label && { label }),
-  });
-  return `${baseURL}?${params.toString()}`;
+  // Solana Pay UI 버그로 인해 직접 QR 코드 생성
+  const usdcMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+  const solanaPayUrl = `solana:${recipient}?amount=${amount}&token=${usdcMint}&label=${encodeURIComponent(label || 'Tradesee Payment')}`;
+  return solanaPayUrl;
+}
+
+// QR 코드 생성 함수 추가
+export function generateQRCodeData(recipient: string, amount: number, label?: string): string {
+  const usdcMint = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
+  return `solana:${recipient}?amount=${amount}&token=${usdcMint}&label=${encodeURIComponent(label || 'Tradesee Payment')}`;
 }
 
 import { PublicKey } from '@solana/web3.js';
@@ -109,6 +112,27 @@ export function getRpcUrl(): string {
   }
   
   return rpcUrl;
+}
+
+// Rate limit 방지를 위한 요청 지연 함수
+export function createRateLimitedConnection(connection: any) {
+  let lastRequestTime = 0;
+  const minInterval = 200; // 200ms 간격으로 요청 제한
+  
+  return {
+    ...connection,
+    getTokenAccountBalance: async (address: any, commitment?: any) => {
+      const now = Date.now();
+      const timeSinceLastRequest = now - lastRequestTime;
+      
+      if (timeSinceLastRequest < minInterval) {
+        await new Promise(resolve => setTimeout(resolve, minInterval - timeSinceLastRequest));
+      }
+      
+      lastRequestTime = Date.now();
+      return connection.getTokenAccountBalance(address, commitment);
+    }
+  };
 }
 
 // Support both SPL Token and Token-2022

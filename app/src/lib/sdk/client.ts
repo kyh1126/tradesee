@@ -1,7 +1,7 @@
 import { PublicKey, Transaction, SystemProgram, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
 import * as anchor from '@coral-xyz/anchor';
 import { Program, AnchorProvider } from '@coral-xyz/anchor';
-import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
 // Using any type for prototype
 import { 
   deriveContractPda, 
@@ -66,6 +66,101 @@ export class TradeseeClient {
       .transaction();
 
     return [contractPda, tx];
+  }
+
+  async depositPayin(contractPda: PublicKey, amount: number): Promise<Transaction> {
+    const [escrowVaultPda] = deriveEscrowVaultPda(this.program.programId, contractPda);
+    const buyer = this.provider.wallet.publicKey;
+    const buyerTokenAccount = await getAssociatedTokenAddress(
+      new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'), // USDC mint
+      buyer
+    );
+
+    const tx = await (this.program as any).methods
+      .depositPayin(new anchor.BN(amount * 1e6)) // Convert to 6 decimals
+      .accounts({
+        contract: contractPda,
+        buyer: buyer,
+        buyerTokenAccount: buyerTokenAccount,
+        escrowVault: escrowVaultPda,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .transaction();
+
+    return tx;
+  }
+
+  async updateToInTransit(
+    contractPda: PublicKey, 
+    shipmentDetails: {
+      trackingNumber: string;
+      carrier: string;
+      estimatedDelivery: number;
+      notes: string;
+    },
+    contractDetails?: {
+      contractTerms?: string;
+      uploadedFile?: {
+        name: string;
+        size: number;
+        type: string;
+        hash: string;
+      };
+    }
+  ): Promise<Transaction> {
+    // Generate doc_hash from contract details and shipment info
+    const docData = JSON.stringify({
+      contractTerms: contractDetails?.contractTerms || '',
+      uploadedFile: contractDetails?.uploadedFile || null,
+      shipmentDetails: shipmentDetails,
+      timestamp: Date.now()
+    });
+    
+    // Create hash from contract details
+    const encoder = new TextEncoder();
+    const data = encoder.encode(docData);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const docHash = Array.from(new Uint8Array(hashBuffer));
+    
+    const tx = await (this.program as any).methods
+      .updateToInTransit(
+        {
+          trackingNumber: shipmentDetails.trackingNumber,
+          carrier: shipmentDetails.carrier,
+          estimatedDelivery: new anchor.BN(shipmentDetails.estimatedDelivery),
+          notes: shipmentDetails.notes,
+        },
+        docHash
+      )
+      .accounts({
+        contract: contractPda,
+        authority: this.provider.wallet.publicKey,
+      })
+      .transaction();
+
+    return tx;
+  }
+
+  async releasePayout(contractPda: PublicKey): Promise<Transaction> {
+    const [escrowVaultPda] = deriveEscrowVaultPda(this.program.programId, contractPda);
+    const seller = this.provider.wallet.publicKey;
+    const sellerTokenAccount = await getAssociatedTokenAddress(
+      new PublicKey('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'), // USDC mint
+      seller
+    );
+
+    const tx = await (this.program as any).methods
+      .releasePayout()
+      .accounts({
+        contract: contractPda,
+        escrowVault: escrowVaultPda,
+        seller: seller,
+        sellerTokenAccount: sellerTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .transaction();
+
+    return tx;
   }
 
   // API Surface Methods (stubs for prototype)
