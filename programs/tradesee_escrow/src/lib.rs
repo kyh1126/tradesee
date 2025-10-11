@@ -103,11 +103,11 @@ pub mod tradesee_escrow {
         require!(can_release, TradeseeError::ReleaseConditionsNotMet);
 
         // Transfer tokens from escrow to seller
+        let contract_key = contract.key();
         let seeds = &[
-            b"contract",
-            contract.initializer.as_ref(),
-            &contract.contract_id,
-            &[contract.bump],
+            b"escrow_vault",
+            contract_key.as_ref(),
+            &[ctx.bumps.escrow_vault],
         ];
         let signer = &[&seeds[..]];
 
@@ -144,11 +144,11 @@ pub mod tradesee_escrow {
         require!(!contract.auto_release_on_expiry, TradeseeError::AutoReleaseEnabled);
 
         // Transfer tokens from escrow back to buyer
+        let contract_key = contract.key();
         let seeds = &[
-            b"contract",
-            contract.initializer.as_ref(),
-            &contract.contract_id,
-            &[contract.bump],
+            b"escrow_vault",
+            contract_key.as_ref(),
+            &[ctx.bumps.escrow_vault],
         ];
         let signer = &[&seeds[..]];
 
@@ -245,7 +245,7 @@ pub struct InitializeContract<'info> {
         init,
         payer = initializer,
         token::mint = usdc_mint,
-        token::authority = contract,
+        token::authority = escrow_vault,
         seeds = [b"escrow_vault", contract.key().as_ref()],
         bump
     )]
@@ -301,6 +301,8 @@ pub struct ReleasePayout<'info> {
     
     #[account(
         mut,
+        seeds = [b"escrow_vault", contract.key().as_ref()],
+        bump,
         constraint = escrow_vault.key() == contract.escrow_vault @ TradeseeError::InvalidAuthority
     )]
     pub escrow_vault: Account<'info, TokenAccount>,
@@ -323,6 +325,8 @@ pub struct Refund<'info> {
     
     #[account(
         mut,
+        seeds = [b"escrow_vault", contract.key().as_ref()],
+        bump,
         constraint = escrow_vault.key() == contract.escrow_vault @ TradeseeError::InvalidAuthority
     )]
     pub escrow_vault: Account<'info, TokenAccount>,
