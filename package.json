@@ -9,7 +9,8 @@
     "create:mint": "ts-node scripts/create-devnet-mint.ts",
     "deploy:devnet": "anchor deploy --provider.cluster devnet",
     "devnet:setup": "npm run create:mint && npm run deploy:devnet && npm run idl:copy",
-    "e2e:check": "ts-node scripts/devnet-e2e-check.ts"
+    "e2e:check": "ts-node scripts/devnet-e2e-check.ts",
+    "e2e:real": "ts-node scripts/devnet-real-e2e.ts"
   },
   "devDependencies": {
     "@coral-xyz/anchor": "^0.31.1",

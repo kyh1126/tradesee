@@ -19,7 +19,7 @@ async function devnetE2ECheck() {
     if (!rpcUrl.includes('api.devnet.solana.com')) {
       throw new Error('Only official Solana Devnet RPC (https://api.devnet.solana.com) is supported.');
     }
-    const usdcMint = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+    const usdcMint = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU');
     
     console.log(`🌐 RPC URL: ${rpcUrl}`);
     console.log(`🪙 USDC Mint: ${usdcMint.toString()}`);
