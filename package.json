@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "workspaces": ["app"],
+  "scripts": {
+    "build:program": "anchor build",
+    "idl:copy": "mkdir -p app/src/lib/idl && cp target/idl/tradesee_escrow.json app/src/lib/idl/",
+    "test": "anchor test",
+    "dev:app": "npm --prefix app run dev"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
+    "mocha": "^10.2.0",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.3.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.10.0",
+    "chai": "^4.3.7",
+    "@types/chai": "^4.3.11"
+  }
+}

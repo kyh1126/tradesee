@@ -38,8 +38,27 @@ Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스
 - Rust 최신 안정판
 - Solana CLI v2.3.13+ (Anza)
 - Anchor v0.31.1
-- Node.js v18+
+- Node.js v20.18.0+ (TS SDK 최신 버전 요구사항)
 - npm 또는 yarn
+
+## 프로젝트 구조
+
+```
+tradesee/
+├── anchor.toml          # Anchor 설정
+├── Cargo.toml           # Rust 프로젝트 설정
+├── package.json         # 루트 의존성 관리 (Yarn Workspaces)
+├── yarn.lock            # 의존성 잠금 파일
+├── tsconfig.json        # TypeScript 설정
+├── programs/            # Solana 프로그램
+│   └── tradesee_escrow/
+│       └── src/lib.rs
+├── tests/               # 테스트 코드
+│   ├── escrow.test.ts
+│   └── sdk/
+└── app/                 # 프론트엔드 (Next.js)
+    └── package.json     # 프론트엔드 전용 의존성
+```
 
 ## 빠른 시작
 
@@ -47,9 +66,14 @@ Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스
 git clone <repository-url>
 cd tradesee
 
-# 의존성 설치
-cd ts && npm install
-cd ../app && npm install
+# Node.js 20.18.0 사용 (중요!)
+nvm use 20.18.0
+
+# 루트 의존성 설치 (테스트/Anchor 관련)
+yarn install
+
+# 앱 의존성 설치
+cd app && npm install
 ```
 
 ### 환경 변수 (app/.env.local)
@@ -63,6 +87,10 @@ NEXT_PUBLIC_PROGRAM_ID=<Program ID>
 ### 개발 서버 실행
 
 ```bash
+# 방법 1: 루트에서 실행
+npm run dev:app
+
+# 방법 2: 앱 디렉토리에서 직접 실행
 cd app
 npm run dev
 # http://localhost:3000
@@ -99,8 +127,10 @@ Contract, TrustScore, OracleFlag 계정에 계약/스코어/오라클 상태를 
 ## 테스트
 
 ```bash
-cd ts
+# 루트에서 실행 (Anchor 자동 validator 관리)
 npm run test
+# 또는
+anchor test
 ```
 
 주요 시나리오: Init→Deposit→Release, Init→Deposit→Refund, 오류 케이스(서명/금액/중복), 트러스트/오라클 작성/조회 등
@@ -110,9 +140,8 @@ npm run test
 ### Devnet
 ```bash
 solana config set --url https://api.devnet.solana.com
-cd ts
-npm run build
-npm run devnet
+npm run build:program
+npm run idl:copy
 ```
 
 ### Mainnet
@@ -123,16 +152,43 @@ solana config set --url https://api.mainnet-beta.solana.com
 
 ## 개발 워크플로우
 
-1) 프로그램 개발(`programs/tradesee_escrow`) → `anchor build`
-2) 테스트(`ts`) → `npm run test`
-3) 프런트(`app`) → `npm run dev`
-4) IDL 동기화 필요 시 빌드 후 복사
+### 추천 사용 흐름
+
+```bash
+# 1. 프로그램 빌드
+npm run build:program
+
+# 2. IDL 복사 (필요할 때만)
+npm run idl:copy
+
+# 3. 테스트 실행
+npm run test
+
+# 4. 앱 개발
+npm run dev:app
+```
+
+### 상세 워크플로우
+
+1) **프로그램 개발** (`programs/tradesee_escrow`) → `npm run build:program`
+2) **테스트** (`tests/`) → `npm run test` (Anchor 자동 validator 관리)
+3) **프론트엔드** (`app/`) → `npm run dev:app`
+4) **IDL 동기화** 필요 시 → `npm run idl:copy`
 
 ## 트러블슈팅(요약)
 
-- InvalidAuthority/AmountMismatch 등: 서명자/금액/상태 검증 확인
-- RPC 이슈: RPC URL/네트워크 설정 확인
-- 디버그: `RUST_LOG=debug`로 상세 로그
+### 일반적인 문제
+
+- **InvalidAuthority/AmountMismatch 등**: 서명자/금액/상태 검증 확인
+- **RPC 이슈**: RPC URL/네트워크 설정 확인
+- **디버그**: `RUST_LOG=debug`로 상세 로그
+
+### 프로젝트 구조 관련
+
+- **Node.js 버전**: Node.js 20.18.0+ 필수 (TS SDK 최신 버전 요구사항)
+- **의존성 충돌**: Yarn Workspaces로 루트/앱 의존성 분리
+- **IDL 복사**: 앱 설치와 분리하여 수동 실행 (`npm run idl:copy`)
+- **테스트 실행**: 루트에서 `npm run test` (Anchor 자동 validator 관리)
 
 ## 라이선스
 
@@ -142,29 +198,45 @@ MIT License
 
 UI/프로토타입 사용 가이드는 `README-UI.md`를 참고하세요.
 
-## 폴더 구조(일부)
+## 폴더 구조(상세)
 
 ```
-app/
-  src/
-    components/
-      AccountBalanceCard.tsx      # USDC 잔액 카드(클라이언트 전용)
-      CreateContractModal.tsx     # 새 계약 생성 모달
-      ContractDetailModal.tsx     # 계약 상세 모달
-      WalletConnect.tsx           # 지갑/Connection Provider
-    pages/
-      index.tsx                   # 대시보드(SSR 비활성화)
-      _app.tsx                    # 글로벌 스타일 주입
-    styles/globals.css            # Tailwind + 커스텀 스타일
-  tailwind.config.js
-  postcss.config.js
-programs/tradesee_escrow/        # Anchor 프로그램(Rust)
-ts/                              # (선택) SDK/테스트
+tradesee/
+├── anchor.toml                  # Anchor 설정
+├── Cargo.toml                   # Rust 프로젝트 설정
+├── package.json                 # 루트 의존성 관리 (Yarn Workspaces)
+├── yarn.lock                    # 의존성 잠금 파일
+├── tsconfig.json                # TypeScript 설정
+├── programs/                    # Solana 프로그램
+│   └── tradesee_escrow/
+│       ├── Cargo.toml
+│       └── src/lib.rs
+├── tests/                       # 테스트 코드
+│   ├── escrow.test.ts
+│   └── sdk/
+│       ├── client.ts
+│       ├── index.ts
+│       ├── types.ts
+│       └── utils.ts
+└── app/                         # 프론트엔드 (Next.js)
+    ├── package.json              # 프론트엔드 전용 의존성
+    ├── src/
+    │   ├── components/
+    │   │   ├── AccountBalanceCard.tsx      # USDC 잔액 카드
+    │   │   ├── CreateContractModal.tsx     # 새 계약 생성 모달
+    │   │   ├── ContractDetailModal.tsx     # 계약 상세 모달
+    │   │   └── WalletConnect.tsx           # 지갑/Connection Provider
+    │   ├── pages/
+    │   │   ├── index.tsx                   # 대시보드
+    │   │   └── _app.tsx                    # 글로벌 스타일 주입
+    │   └── styles/globals.css              # Tailwind + 커스텀 스타일
+    ├── tailwind.config.js
+    └── postcss.config.js
 ```
 
 ## 요구 사항
 
-- Node.js 18+
+- Node.js 20.18.0+ (TS SDK 최신 버전 요구사항)
 - Solana CLI 2.3.13+ (Anza)
 - Anchor 0.31.1
 
@@ -174,11 +246,14 @@ ts/                              # (선택) SDK/테스트
 git clone <repository-url>
 cd tradesee
 
-# 의존성 설치
-cd app && npm install
+# Node.js 20.18.0 사용 (중요!)
+nvm use 20.18.0
 
-# (선택) 백엔드/SDK가 필요하면 ts 디렉토리도 설치
-# cd ../ts && npm install
+# 루트 의존성 설치 (테스트/Anchor 관련)
+yarn install
+
+# 앱 의존성 설치
+cd app && npm install
 ```
 
 ### 환경 변수 설정 (app/.env.local)
@@ -195,6 +270,10 @@ NEXT_PUBLIC_PROGRAM_ID=<Devnet Program ID>
 설정 후 개발 서버 실행:
 
 ```bash
+# 방법 1: 루트에서 실행
+npm run dev:app
+
+# 방법 2: 앱 디렉토리에서 직접 실행
 cd app
 npm run dev
 # http://localhost:3000 접속

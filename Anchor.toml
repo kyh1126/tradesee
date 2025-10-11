@@ -12,11 +12,11 @@ tradesee_escrow = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Devnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./ts/tsconfig.json -t 1000000 tests/**/*.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/*.ts"
 
 [toolchain]
 anchor_version = "0.31.1"

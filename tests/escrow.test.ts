@@ -10,8 +10,8 @@ import {
   airdropSolIfNeeded,
   generateContractId,
   hashDocument
-} from '../sdk/utils';
-import { TradeseeClient } from '../sdk/client';
+} from './sdk/utils';
+import { TradeseeClient } from './sdk/client';
 import { 
   TOKEN_PROGRAM_ID, 
   ASSOCIATED_TOKEN_PROGRAM_ID,
