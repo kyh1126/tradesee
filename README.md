@@ -1,4 +1,4 @@
-# Tradesee - Solana Escrow Platform (프로토콜/스마트컨트랙트 중심)
+# Tradesee - Solana Escrow Platform
 
 Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스크로 플랫폼입니다. 에스크로 계약, 문서 해시 앵커링, 트러스트 스코어, 오라클 통합을 포함한 전체 설계를 목표로 합니다.
 
@@ -342,11 +342,3 @@ npm run dev
 
 - `app/scripts/test-solana-pay.js`: Solana Pay URL 생성 테스트
 - `scripts/local-usdc-mint.ts`: 로컬 테스트용 USDC 민트 생성(선택)
-
-## 라이선스
-
-MIT License
-
----
-
-Built with Solana, Anchor, Next.js
