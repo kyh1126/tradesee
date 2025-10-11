@@ -27,6 +27,9 @@ describe('tradesee_escrow', () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
+  
+  // Log RPC URL for verification
+  console.log('Using RPC:', provider.connection.rpcEndpoint);
 
   const program = anchor.workspace.TradeseeEscrow as Program<TradeseeEscrow>;
   const client = new TradeseeClient(program, provider);

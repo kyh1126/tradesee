@@ -93,16 +93,22 @@ export async function getOrCreateAta(
 
 // Get USDC mint from environment variables
 export function getUsdcMint(): PublicKey {
-  const usdcMint = process.env.NEXT_PUBLIC_USDC_MINT;
-  if (!usdcMint) {
-    throw new Error('NEXT_PUBLIC_USDC_MINT environment variable is required');
-  }
+  // Default to Phantom wallet devnet USDC mint if not set
+  const usdcMint = process.env.NEXT_PUBLIC_USDC_MINT || '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
   return new PublicKey(usdcMint);
 }
 
 // Get RPC URL from environment variables
 export function getRpcUrl(): string {
-  return process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
+  // Default to official Solana Devnet RPC if not set
+  const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
+  
+  // Ensure we're using official Solana Devnet RPC
+  if (!rpcUrl.includes('api.devnet.solana.com')) {
+    throw new Error('Only official Solana Devnet RPC (https://api.devnet.solana.com) is supported.');
+  }
+  
+  return rpcUrl;
 }
 
 // Support both SPL Token and Token-2022

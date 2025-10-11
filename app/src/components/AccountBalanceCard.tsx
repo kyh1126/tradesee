@@ -20,22 +20,43 @@ export default function AccountBalanceCard() {
     setLoading(true);
     try {
       const connection = new Connection(RPC_URL, 'confirmed');
+      
+      // Debug logs
+      console.log('🔍 USDC Balance Debug:');
+      console.log('RPC URL:', RPC_URL);
+      console.log('USDC Mint:', USDC_MINT.toString());
+      console.log('Wallet:', publicKey.toString());
 
       const ataSpl = getAssociatedTokenAddressSync(USDC_MINT, publicKey, false, TOKEN_PROGRAM_ID);
       const ata22 = getAssociatedTokenAddressSync(USDC_MINT, publicKey, false, TOKEN_2022_PROGRAM_ID);
+      
+      console.log('SPL Token ATA:', ataSpl.toString());
+      console.log('Token-2022 ATA:', ata22.toString());
 
-      const getBal = async (ata: PublicKey) => {
+      const getBal = async (ata: PublicKey, tokenType: string) => {
         try {
           const info = await connection.getTokenAccountBalance(ata);
           const decimals = info.value.decimals ?? 6;
-          return Number(info.value.amount) / Math.pow(10, decimals);
-        } catch {
+          const balance = Number(info.value.amount) / Math.pow(10, decimals);
+          console.log(`${tokenType} Balance:`, balance, 'tokens');
+          return balance;
+        } catch (error) {
+          console.log(`${tokenType} ATA not found or error:`, error.message);
           return 0;
         }
       };
 
-      const [b1, b2] = await Promise.all([getBal(ataSpl), getBal(ata22)]);
-      setBalance(Math.max(b1, b2));
+      const [b1, b2] = await Promise.all([
+        getBal(ataSpl, 'SPL Token'),
+        getBal(ata22, 'Token-2022')
+      ]);
+      
+      const finalBalance = Math.max(b1, b2);
+      console.log('Final Balance:', finalBalance);
+      setBalance(finalBalance);
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+      setBalance(0);
     } finally {
       setLoading(false);
     }

@@ -1,16 +1,16 @@
-# Tradesee - Solana Escrow Platform
+# Tradesee - Solana 에스크로 플랫폼
 
 Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스크로 플랫폼입니다. 에스크로 계약, 문서 해시 앵커링, 트러스트 스코어, 오라클 통합을 포함한 전체 설계를 목표로 합니다.
 
 ## 기능 개요
 
 ### 1) 에스크로 & 문서 해시 앵커링
-- Initialize Contract: 구매자/판매자, 만료, 문서 해시, 금액 등으로 계약 생성
-- Deposit Payin: USDC 예치 (SPL Token + Token-2022 지원)
-- Release Payout: 자동/마일스톤 기반 지급
-- Refund: 만료 후 안전한 환불
-- Document Anchoring: SHA256 기반 문서 검증
-- Environment Variables: USDC_MINT, RPC_URL 환경변수 지원
+- 계약 초기화: 구매자/판매자, 만료, 문서 해시, 금액 등으로 계약 생성
+- 입금: USDC 예치 (SPL Token + Token-2022 지원)
+- 지급: 자동/마일스톤 기반 지급
+- 환불: 만료 후 안전한 환불
+- 문서 앵커링: SHA256 기반 문서 검증
+- 환경변수: USDC_MINT, RPC_URL 환경변수 지원
 
 ### 2) 트러스트 스코어 앵커링(Stub)
 - 오프체인 산출 스코어(0-1000)를 온체인에 앵커링
@@ -44,16 +44,21 @@ Tradesee는 Solana와 Anchor 프레임워크로 구축된 프로덕션급 에스
 - Node.js v20.18.0+ (TS SDK 최신 버전 요구사항)
 - npm 또는 yarn
 
+## RPC 설정 가이드
+
+Tradesee는 공식 Solana Devnet RPC(`https://api.devnet.solana.com`)만을 사용합니다.
+helius, quicknode 등 외부 RPC 엔드포인트는 지원하지 않습니다.
+
 ## 환경변수 설정
 
 ### 앱 환경변수 (app/.env.local)
 ```bash
-# Solana Network Configuration
+# Solana 네트워크 설정
 NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
 NEXT_PUBLIC_USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
 NEXT_PUBLIC_PROGRAM_ID=Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
 
-# App Configuration
+# 앱 설정
 NEXT_PUBLIC_APP_NAME=Tradesee
 NEXT_PUBLIC_APP_VERSION=0.1.0
 NEXT_PUBLIC_DEBUG_MODE=true
@@ -198,6 +203,79 @@ npm run dev:app
 3) **프론트엔드** (`app/`) → `npm run dev:app`
 4) **IDL 동기화** 필요 시 → `npm run idl:copy`
 
+## 🧪 Devnet End-to-End 테스트
+
+### 사전 요구사항
+- Solana CLI가 Devnet으로 설정됨
+- Phantom 지갑 설치됨
+- Devnet에서 충분한 SOL 잔액 보유
+
+### 빠른 설정
+```bash
+# 1. Solana CLI를 Devnet으로 설정
+solana config set --url https://api.devnet.solana.com
+
+# 2. 테스트용 SOL 받기
+solana airdrop 2
+
+# 3. 커스텀 USDC mint 생성
+npm run create:mint
+
+# 4. 프로그램을 Devnet에 배포
+npm run deploy:devnet
+
+# 5. 프론트엔드 시작
+npm run dev
+```
+
+### 수동 단계
+```bash
+# Devnet 설정 확인
+solana config get
+
+# 프로그램 배포 확인
+solana program show Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
+
+# E2E 검증 실행
+npm run e2e:check
+```
+
+### E2E 테스트 플로우
+1. **열기**: http://localhost:3000
+2. **연결**: Phantom 지갑 (Devnet 네트워크)
+3. **확인**: USDC 잔액 표시
+4. **테스트**: 계약 생성 → 입금 → 검증 및 출금 플로우
+
+### 문제 해결
+
+#### Phantom 지갑 문제
+- Phantom이 Devnet 네트워크로 설정되어 있는지 확인
+- Phantom은 Localnet을 지원하지 않음
+- 브라우저 콘솔에서 지갑 연결 상태 확인
+
+#### 토큰 문제
+- `.env.local`에서 USDC mint 주소 확인
+- Phantom에서 토큰 잔액 확인
+- Token-2022/SPL 감지가 자동으로 처리됨
+
+#### 트랜잭션 문제
+- 트랜잭션 수수료를 위한 SOL 잔액 확인
+- 프로그램이 Devnet에 배포되었는지 확인
+- RPC 엔드포인트 연결 상태 확인
+
+#### RPC 문제
+- 공식 Solana Devnet RPC 사용: `https://api.devnet.solana.com`
+- 외부 RPC 제공업체(Helius, Quicknode) 사용 금지
+- 네트워크 연결 상태 확인
+
+### 환경변수
+```bash
+# app/.env.local
+NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
+NEXT_PUBLIC_USDC_MINT=<your_devnet_mint>
+NEXT_PUBLIC_PROGRAM_ID=Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
+```
+
 ## 트러블슈팅(요약)
 
 ### 일반적인 문제
@@ -212,10 +290,6 @@ npm run dev:app
 - **의존성 충돌**: Yarn Workspaces로 루트/앱 의존성 분리
 - **IDL 복사**: 앱 설치와 분리하여 수동 실행 (`npm run idl:copy`)
 - **테스트 실행**: 루트에서 `npm run test` (Anchor 자동 validator 관리)
-
-## 라이선스
-
-MIT License
 
 ---
 
@@ -341,4 +415,6 @@ npm run dev
 ## 스크립트(일부)
 
 - `app/scripts/test-solana-pay.js`: Solana Pay URL 생성 테스트
+- `scripts/create-devnet-mint.ts`: Devnet USDC 민트 생성
+- `scripts/devnet-e2e-check.ts`: Devnet E2E 검증
 - `scripts/local-usdc-mint.ts`: 로컬 테스트용 USDC 민트 생성(선택)

@@ -5,16 +5,23 @@
     "build:program": "anchor build",
     "idl:copy": "mkdir -p app/src/lib/idl && cp target/idl/tradesee_escrow.json app/src/lib/idl/",
     "test": "anchor test",
-    "dev:app": "npm --prefix app run dev"
+    "dev:app": "npm --prefix app run dev",
+    "create:mint": "ts-node scripts/create-devnet-mint.ts",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet",
+    "devnet:setup": "npm run create:mint && npm run deploy:devnet && npm run idl:copy",
+    "e2e:check": "ts-node scripts/devnet-e2e-check.ts"
   },
   "devDependencies": {
     "@coral-xyz/anchor": "^0.31.1",
+    "@solana/spl-token": "^0.3.9",
+    "@solana/web3.js": "^1.87.6",
     "mocha": "^10.2.0",
     "ts-mocha": "^10.0.0",
     "typescript": "^5.3.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.0",
     "chai": "^4.3.7",
-    "@types/chai": "^4.3.11"
+    "@types/chai": "^4.3.11",
+    "ts-node": "^10.9.0"
   }
 }
