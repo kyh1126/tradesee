@@ -18,7 +18,7 @@ function generateSolanaPayURL(recipient, amount, label) {
 // Test cases
 const testCases = [
   {
-    recipient: 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS',
+    recipient: 'J6w1gENjjbx8XG6ECtwWqfjmoPFHwtz9wqx2jj84qk5t',
     amount: 100,
     label: 'Tradesee Escrow Demo'
   },

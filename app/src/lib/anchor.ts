@@ -4,7 +4,7 @@ import idl from './idl/tradesee_escrow.json';
 import { TradeseeClient } from './sdk';
 import { getRpcUrl, getUsdcMint } from './utils';
 
-const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS');
+const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || 'J6w1gENjjbx8XG6ECtwWqfjmoPFHwtz9wqx2jj84qk5t');
 const RPC_URL = getRpcUrl();
 const USDC_MINT = getUsdcMint();
 

@@ -62,7 +62,7 @@ async function devnetE2ECheck() {
     }
     
     // Load program
-    const programId = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS');
+    const programId = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || 'J6w1gENjjbx8XG6ECtwWqfjmoPFHwtz9wqx2jj84qk5t');
     console.log(`📦 Program ID: ${programId.toString()}`);
     
     // Check if program is deployed

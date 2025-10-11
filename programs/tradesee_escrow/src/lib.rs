@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 use anchor_lang::solana_program::clock::Clock;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("J6w1gENjjbx8XG6ECtwWqfjmoPFHwtz9wqx2jj84qk5t");
 
 #[program]
 pub mod tradesee_escrow {

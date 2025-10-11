@@ -56,7 +56,7 @@ helius, quicknode 등 외부 RPC 엔드포인트는 지원하지 않습니다.
 # Solana 네트워크 설정
 NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
 NEXT_PUBLIC_USDC_MINT=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
-NEXT_PUBLIC_PROGRAM_ID=Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
+NEXT_PUBLIC_PROGRAM_ID=J6w1gENjjbx8XG6ECtwWqfjmoPFHwtz9wqx2jj84qk5t
 
 # 앱 설정
 NEXT_PUBLIC_APP_NAME=Tradesee
@@ -234,7 +234,7 @@ npm run dev
 solana config get
 
 # 프로그램 배포 확인
-solana program show Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
+solana program show J6w1gENjjbx8XG6ECtwWqfjmoPFHwtz9wqx2jj84qk5t
 
 # E2E 검증 실행
 npm run e2e:check
@@ -272,8 +272,8 @@ npm run e2e:check
 ```bash
 # app/.env.local
 NEXT_PUBLIC_RPC_URL=https://api.devnet.solana.com
-NEXT_PUBLIC_USDC_MINT=<your_devnet_mint>
-NEXT_PUBLIC_PROGRAM_ID=Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS
+NEXT_PUBLIC_USDC_MINT=4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU
+NEXT_PUBLIC_PROGRAM_ID=J6w1gENjjbx8XG6ECtwWqfjmoPFHwtz9wqx2jj84qk5t
 ```
 
 ## 트러블슈팅(요약)
