@@ -230,6 +230,10 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
                   <DepositPayinButton 
                     contractPda={currentContract.id} // 실제 계약 ID 사용
                     amount={parseFloat(currentContract.contractValue || currentContract.amount)}
+                    contract={{
+                      importer: currentContract.importer,
+                      exporter: currentContract.exporter
+                    }}
                     onSuccess={async () => {
                       alert('Deposit verified successfully! Contract status will be updated.');
                       

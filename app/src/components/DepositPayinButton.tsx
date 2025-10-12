@@ -7,10 +7,14 @@ import { RPC_URL, USDC_MINT } from '../lib/anchor';
 interface DepositPayinButtonProps {
   contractPda: string;
   amount: number;
+  contract?: {
+    importer?: string;
+    exporter?: string;
+  };
   onSuccess?: () => void;
 }
 
-export default function DepositPayinButton({ contractPda, amount, onSuccess }: DepositPayinButtonProps) {
+export default function DepositPayinButton({ contractPda, amount, contract, onSuccess }: DepositPayinButtonProps) {
   const { publicKey } = useWallet();
   const [loading, setLoading] = useState(false);
   const [showTxInput, setShowTxInput] = useState(false);
@@ -147,8 +151,9 @@ export default function DepositPayinButton({ contractPda, amount, onSuccess }: D
           });
 
           if (change > 0) {
-            // This account sent USDC
-            sourceAddress = accountAddress;
+            // This account sent USDC - get the owner of the token account
+            const tokenAccountOwner = preBalance.owner;
+            sourceAddress = tokenAccountOwner;
             transferAmount = change;
             usdcTransferFound = true;
             
@@ -175,7 +180,8 @@ export default function DepositPayinButton({ contractPda, amount, onSuccess }: D
             }
             
             console.log('✅ USDC Transfer Found:', {
-              source: sourceAddress,
+              tokenAccount: accountAddress,
+              sourceOwner: sourceAddress,
               destination: destinationAddress,
               amount: transferAmount,
               amountInUSDC: transferAmount / 1e6
@@ -205,18 +211,22 @@ export default function DepositPayinButton({ contractPda, amount, onSuccess }: D
         transactionId: txId
       });
 
-      // 추가 검증: 실제 Buyer 주소와 비교
-      const expectedBuyer = 'Ah98MjeCX4u4MJoxvB5BPkSLo1mR2a9WEZ7RTVkMnDXp';
+      // 계약에서 실제 Buyer(Importer) 주소 가져오기
+      const expectedBuyer = contract?.importer;
       console.log('🔍 Address Verification:', {
-        detectedSource: sourceAddress,
+        detectedSourceOwner: sourceAddress,
         expectedBuyer: expectedBuyer,
-        isCorrectBuyer: sourceAddress === expectedBuyer
+        isCorrectBuyer: sourceAddress === expectedBuyer,
+        contractImporter: contract?.importer,
+        contractExporter: contract?.exporter,
+        note: 'sourceAddress should be the owner of the token account that sent USDC'
       });
 
       // Buyer 주소 검증
-      if (sourceAddress !== expectedBuyer) {
+      if (expectedBuyer && sourceAddress !== expectedBuyer) {
         console.log('⚠️ Warning: Source address does not match expected buyer!');
         console.log('🔍 This might be a different transaction or the buyer used a different account.');
+        throw new Error(`Invalid buyer address. Expected importer: ${expectedBuyer}, Got token account owner: ${sourceAddress}`);
       }
 
       // 처리된 TxID 기록
