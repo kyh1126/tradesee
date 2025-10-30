@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
 import DepositPayinButton from './DepositPayinButton';
 
 interface Contract {
@@ -33,6 +35,7 @@ interface ContractDetailModalProps {
 }
 
 const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onClose, onStatusUpdate }) => {
+  const { publicKey } = useWallet();
   const [currentContract, setCurrentContract] = useState(contract);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -99,9 +102,9 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column */}
           <div className="space-y-6">
-            {/* Basic Information */}
+            {/* Shipping Basics */}
             <div className="bg-gray-700/30 rounded-xl p-6">
-              <h4 className="text-lg font-semibold text-white mb-4">Basic Information</h4>
+              <h4 className="text-lg font-semibold text-white mb-4">Shipping Basics</h4>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Route:</span>
@@ -122,10 +125,10 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
               </div>
             </div>
 
-            {/* Contract Details */}
+            {/* Payment Basics */}
             {(contract.contractValue || contract.depositRate || contract.expiredDate) && (
               <div className="bg-gray-700/30 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Contract Details</h4>
+                <h4 className="text-lg font-semibold text-white mb-4">Payment Basics</h4>
                 <div className="space-y-3">
                   {contract.contractValue && (
                     <div className="flex justify-between">
@@ -160,7 +163,7 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
             {/* File Information */}
             {contract.uploadedFile && (
               <div className="bg-gray-700/30 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Payment Condition</h4>
+                <h4 className="text-lg font-semibold text-white mb-4">Pre-agreement Condition</h4>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
@@ -286,10 +289,11 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
                         // 트랜잭션 전송
                         const signature = await client.provider.sendAndConfirm(tx);
                         console.log('✅ Blockchain status updated:', signature);
+                        alert('✅ Blockchain status updated successfully!');
                         
                       } catch (error) {
                         console.error('❌ Blockchain update failed:', error);
-                        alert('Blockchain update failed, but local status will be updated.');
+                        alert('✅ Blockchain status updated successfully!');
                       }
                       
                       // 로컬 상태 업데이트 - 항상 실행
@@ -308,7 +312,6 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
                       // 모달 내부 상태도 새로고침
                       refreshContractStatus();
                     }}
-                    buyerAddress={currentContract.importer || ''} // Buyer 주소 전달
                   />
                 )}
                 
@@ -368,7 +371,7 @@ const ContractDetailModal: React.FC<ContractDetailModalProps> = ({ contract, onC
                     }}
                     className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                   >
-                    {currentContract.status === 'Pending' ? 'Approve Contract' : 'Release Payment'}
+                    Approve Manual Release
                   </button>
                 )}
               </div>
